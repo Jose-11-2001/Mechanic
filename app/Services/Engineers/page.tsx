@@ -45,7 +45,7 @@ export default function Engineers() {
             <h3 className="text-xl font-bold text-white mb-2">{service.name}</h3>
             <p className="text-gray-300 mb-4">{service.description}</p>
             <div className="flex justify-between items-center">
-              <span className="text-green-400 font-bold">${service.price}</span>
+              <span className="text-green-400 font-bold">K{service.price}</span>
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
                 Book Now
               </button>

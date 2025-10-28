@@ -101,7 +101,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-8">
+    <div className="min-h-screen bg-gray-900 p-8 ">
       <div className="max-w-6xl mx-auto">
          <Link href="/Admin/login" className="text-blue-400 hover:text-blue-300 mb-2 inline-block">
                       ← Back to Login

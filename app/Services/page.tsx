@@ -29,7 +29,7 @@ export default function services() {
       name: 'Engineer', 
       description: 'Expert mechanical engineering services', 
       icon: '🔧',
-      href: '/Services/Engineer'
+      href: '/Services/Engineers'
     },
     { 
       id: 5, 
@@ -68,7 +68,7 @@ export default function services() {
       <div className="relative z-10 w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">BODE-AUTOMOTIVES</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">BODE AUTOMOTIVES</h1>
           <p className="text-xl text-gray-300">Our Products & Services</p>
         </div>
 

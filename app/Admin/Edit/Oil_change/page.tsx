@@ -88,7 +88,7 @@ export default function Oil_change() {
             <Link href="/Admin/Dashboard" className="text-blue-400 hover:text-blue-300 mb-2 inline-block">
               ← Back to Dashboard
             </Link>
-            <h1 className="text-3xl font-bold text-white">Edit {category.charAt(0).toUpperCase() + category.slice(1)}</h1>
+            <h1 className="text-3xl font-bold text-white">Edit Oil change Services</h1>
           </div>
           <div className="space-x-2">
             <button

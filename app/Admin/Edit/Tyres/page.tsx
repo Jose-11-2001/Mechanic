@@ -150,7 +150,7 @@ export default function Tyres() {
                   <p className="text-gray-300">
                     {item.brand && `Brand: ${item.brand} • `}
                     {item.type && `Type: ${item.type} • `}
-                    Price: K{item.price} • Qty: {item.quantity}
+                    Price: {item.price} • Qty: {item.quantity}
                   </p>
                 </div>
                 <div className="flex space-x-2">

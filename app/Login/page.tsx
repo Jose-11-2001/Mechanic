@@ -96,7 +96,7 @@ export default function Login() {
       {/* Login Card */}
       <div className="relative z-10 bg-gray-900 bg-opacity-90 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-700">
         {/* Back Arrow on the form */}
-        <Link href="/Home">
+        <Link href="/">
           <button className="absolute top-4 left-4 text-gray-300 hover:text-white transition duration-200">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -106,7 +106,7 @@ export default function Login() {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white">BODE-AUTOMOTIVES</h1>
+          <h1 className="text-2xl font-bold text-white">BODE AUTOMOTIVES</h1>
           <p className="text-gray-300 mt-2">Sign in to your account</p>
         </div>
 
@@ -178,7 +178,7 @@ export default function Login() {
                 Remember me
               </label>
             </div>
-            <Link href="ForgetPassword" className="text-sm text-blue-400 hover:text-blue-300">
+          <Link href="ForgetPassword" className="text-sm text-blue-400 hover:text-blue-300">
               Forgot password?
             </Link>
           </div>

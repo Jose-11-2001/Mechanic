@@ -48,7 +48,7 @@ export default function Cars() {
               <p className="text-gray-300">{service.description}</p>
             </div>
             <div className="flex justify-between items-center mt-4">
-              <span className="text-green-400 font-bold text-lg">${service.price}</span>
+              <span className="text-green-400 font-bold text-lg">K{service.price}</span>
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
                 Book Service
               </button>

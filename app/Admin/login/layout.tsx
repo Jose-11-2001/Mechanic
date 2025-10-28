@@ -1,4 +1,4 @@
-export default function adimnloginLayout({
+export default function loginLayout({
   children,
 }: {
   children: React.ReactNode
