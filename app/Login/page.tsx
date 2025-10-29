@@ -4,26 +4,34 @@ import Link from 'next/link';
 
 export default function Login() {
   const [formData, setFormData] = useState({
-    email: '',
+    loginId: '', // This can be username or email
     password: ''
   });
   
   const [errors, setErrors] = useState({
-    email: '',
+    loginId: '',
     password: ''
   });
   
   const [touched, setTouched] = useState({
-    email: false,
+    loginId: false,
     password: false
   });
 
   // Validation rules
   const validateField = (name: string, value: string) => {
     switch (name) {
-      case 'email':
-        if (!value) return 'Email is required';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email';
+      case 'loginId':
+        if (!value) return 'Username or Email is required';
+        if (value.length < 3) return 'Must be at least 3 characters';
+        if (value.length > 100) return 'Must be less than 100 characters';
+        
+        // If it contains @, validate as email, otherwise as username
+        if (value.includes('@')) {
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address';
+        } else {
+          if (!/^[a-zA-Z0-9_]+$/.test(value)) return 'Username can only contain letters, numbers, and underscores';
+        }
         return '';
       
       case 'password':
@@ -63,9 +71,12 @@ export default function Login() {
     e.preventDefault();
     
     // Mark all fields as touched and validate
-    const newTouched = { email: true, password: true };
+    const newTouched = { 
+      loginId: true, 
+      password: true 
+    };
     const newErrors = {
-      email: validateField('email', formData.email),
+      loginId: validateField('loginId', formData.loginId),
       password: validateField('password', formData.password)
     };
     
@@ -73,17 +84,47 @@ export default function Login() {
     setErrors(newErrors);
     
     // Check if form is valid
-    const isValid = !newErrors.email && !newErrors.password;
+    const isValid = !newErrors.loginId && !newErrors.password;
     
     if (isValid) {
-      // Submit the form (add your API call here)
-      console.log('Form is valid, submitting:', formData);
-      alert('Login successful!');
+      // Determine if loginId is email or username
+      const isEmail = formData.loginId.includes('@');
+      const loginData = {
+        loginId: formData.loginId,
+        password: formData.password,
+        isEmail: isEmail
+      };
+      
+      console.log('Login form is valid, submitting:', loginData);
+      
       // Add your login logic here
+      // You can send this to your backend API
+      // The backend should check both username and email fields
+      
+      alert('Login successful!');
+      
+      // Reset form after successful submission
+      setFormData({
+        loginId: '',
+        password: ''
+      });
+      setTouched({
+        loginId: false,
+        password: false
+      });
+      
+      // Redirect to dashboard or home page
+      // window.location.href = '/dashboard';
+      
     } else {
       console.log('Form has errors');
     }
   };
+
+  // Check if form has any errors
+  const hasErrors = Object.values(errors).some(error => error !== '');
+  // Check if all required fields are filled
+  const allFieldsFilled = formData.loginId && formData.password;
 
   return (
     <div 
@@ -95,7 +136,7 @@ export default function Login() {
       
       {/* Login Card */}
       <div className="relative z-10 bg-gray-900 bg-opacity-90 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-700">
-        {/* Back Arrow on the form */}
+        {/* Back Arrow */}
         <Link href="/">
           <button className="absolute top-4 left-4 text-gray-300 hover:text-white transition duration-200">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,42 +148,46 @@ export default function Login() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white">BODE AUTOMOTIVES</h1>
-          <p className="text-gray-300 mt-2">Sign in to your account</p>
+          <p className="text-gray-300 mt-2">Welcome back</p>
+          <p className="text-sm text-green-400 mt-1">Login with username or email</p>
         </div>
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-          {/* Email Input */}
+          {/* Username/Email Input */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-              Email Address
+            <label htmlFor="loginId" className="block text-sm font-medium text-gray-300 mb-2">
+              Username or Email *
             </label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              id="loginId"
+              name="loginId"
+              value={formData.loginId}
               onChange={handleChange}
               onBlur={handleBlur}
-              placeholder="Enter your email"
-              className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200 ${
-                errors.email && touched.email 
+              placeholder="Enter your username or email"
+              className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200 ${
+                errors.loginId && touched.loginId 
                   ? 'border-red-500' 
                   : 'border-gray-600'
               }`}
             />
-            {errors.email && touched.email && (
+            {errors.loginId && touched.loginId && (
               <p className="text-red-400 text-sm mt-1 flex items-center">
                 <span className="mr-1">⚠</span>
-                {errors.email}
+                {errors.loginId}
               </p>
             )}
+            <p className="text-xs text-gray-400 mt-1">
+              Enter the username or email you used to create your account
+            </p>
           </div>
 
           {/* Password Input */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-              Password
+              Password *
             </label>
             <input
               type="password"
@@ -152,7 +197,7 @@ export default function Login() {
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder="Enter your password"
-              className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200 ${
+              className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200 ${
                 errors.password && touched.password 
                   ? 'border-red-500' 
                   : 'border-gray-600'
@@ -172,41 +217,37 @@ export default function Login() {
               <input
                 type="checkbox"
                 id="remember"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-gray-800"
+                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-600 rounded bg-gray-800"
               />
               <label htmlFor="remember" className="ml-2 block text-sm text-gray-300">
                 Remember me
               </label>
             </div>
-          <Link href="ForgetPassword" className="text-sm text-blue-400 hover:text-blue-300">
+            
+            <Link href="/forgot-password" className="text-sm text-green-400 hover:text-green-300">
               Forgot password?
             </Link>
           </div>
 
           {/* Login Button */}
-          <Link href="Services"><button
+          <Link href="\Services">
+          <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            disabled={!!errors.email || !!errors.password}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            disabled={hasErrors || !allFieldsFilled}
           >
             Login
           </button>
-</Link>
-          
-          {/* Divider */}
-          <div className="relative flex items-center my-6">
-            <div className="flex-grow border-t border-gray-600"></div>
-            
-            <div className="flex-grow border-t border-gray-600"></div>
-          </div>
+          </Link>
         </form>
+
 
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-sm text-gray-400">
             Don't have an account?{' '}
-            <Link href="/SignUp" className="text-blue-400 hover:text-blue-300 font-semibold">
-              Sign up
+            <Link href="/SignUp" className="text-green-400 hover:text-green-300 font-semibold">
+              Sign up here
             </Link>
           </p>
         </div>

@@ -8,6 +8,7 @@ export default function Home() {
     '/Mechanic2.jpg',
     '/Mechanic3.jpg',
     '/Mechanic4.jpg',
+  
   ];
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);

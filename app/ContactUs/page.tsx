@@ -118,7 +118,7 @@ export default function ContactUs() {
           </Link>
           <div className="flex space-x-4">
             <Link 
-              href="/about" 
+              href="/AboutUs" 
               className="text-gray-300 hover:text-green-400 transition duration-300 font-semibold"
             >
               About Us

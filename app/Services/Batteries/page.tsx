@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-
+import Image from 'next/image';
 
 export default function Batteries() {
   const [batteries, setBatteries] = useState([]);
@@ -23,9 +23,11 @@ export default function Batteries() {
 
   const checkCurrentUser = async () => {
     try {
-      // You'll need to implement this based on your auth setup
-      const userData = await getCurrentUser(); // Your user auth function
-      setUser(userData);
+      // Check if user is logged in (you can replace this with your actual auth check)
+      const userData = localStorage.getItem('currentUser');
+      if (userData) {
+        setUser(JSON.parse(userData));
+      }
     } catch (error) {
       console.log('No user logged in');
     }
@@ -34,15 +36,11 @@ export default function Batteries() {
   const loadBatteries = async () => {
     try {
       setLoading(true);
-      const response = await databases.listDocuments(
-        'main', // your database ID
-        'batteries', // collection ID
-        [Query.equal('isActive', true)] // only show active batteries
-      );
-      setBatteries(response.documents);
+      // Use default batteries data directly
+      setBatteries(getDefaultBatteries());
     } catch (error) {
       console.error('Error loading batteries:', error);
-      // Fallback to default data if Appwrite fails
+      // Fallback to default data
       setBatteries(getDefaultBatteries());
     } finally {
       setLoading(false);
@@ -51,21 +49,16 @@ export default function Batteries() {
 
   const getDefaultBatteries = () => {
     return [
-      { $id: '1', type: 'Lead Acid Battery', capacity: '45Ah', warranty: '1 Year', price: 150000, quantity: 20 },
-      { $id: '2', type: 'Maintenance Free', capacity: '60Ah', warranty: '2 Years', price: 200000, quantity: 15 },
-      { $id: '3', type: 'Calcium Battery', capacity: '75Ah', warranty: '3 Years', price: 280000, quantity: 10 },
-      { $id: '4', type: 'AGM Battery', capacity: '100Ah', warranty: '4 Years', price: 420000, quantity: 8 },
-      { $id: '5', type: 'Gel Battery', capacity: '200Ah', warranty: '5 Years', price: 580000, quantity: 5 },
-      { $id: '6', type: 'Lithium Ion', capacity: '100Ah', warranty: '8 Years', price: 820000, quantity: 3 },
+      { id: '1', type: 'Lead Acid Battery', capacity: '45Ah', warranty: '1 Year', price: 150000, quantity: 20 },
+      { id: '2', type: 'Maintenance Free', capacity: '60Ah', warranty: '2 Years', price: 200000, quantity: 15 },
+      { id: '3', type: 'Calcium Battery', capacity: '75Ah', warranty: '3 Years', price: 280000, quantity: 10 },
+      { id: '4', type: 'AGM Battery', capacity: '100Ah', warranty: '4 Years', price: 420000, quantity: 8 },
+      { id: '5', type: 'Gel Battery', capacity: '200Ah', warranty: '5 Years', price: 580000, quantity: 5 },
+      { id: '6', type: 'Lithium Ion', capacity: '100Ah', warranty: '8 Years', price: 820000, quantity: 3 },
     ];
   };
 
   const handleBuyNow = (battery: any) => {
-    if (!user) {
-      alert('Please login to purchase batteries');
-      return;
-    }
-    
     if (battery.quantity < 1) {
       alert('Sorry, this battery is out of stock');
       return;
@@ -77,51 +70,25 @@ export default function Batteries() {
   };
 
   const handlePayment = async (paymentMethod: string) => {
-    if (!selectedBattery || !user) return;
+    if (!selectedBattery) return;
 
     const totalAmount = selectedBattery.price * quantity;
 
     try {
-      // Create order in Appwrite
-      const order = await databases.createDocument(
-        'main',
-        'orders',
-        ID.unique(),
-        {
-          customerId: user.$id,
-          items: [{
-            productId: selectedBattery.$id,
-            productType: 'battery',
-            name: selectedBattery.type,
-            capacity: selectedBattery.capacity,
-            quantity: quantity,
-            unitPrice: selectedBattery.price,
-            totalPrice: totalAmount
-          }],
-          totalAmount: totalAmount,
-          status: 'pending',
-          paymentMethod: paymentMethod,
-          shippingAddress: user.profile?.address || 'To be confirmed',
-          orderDate: new Date().toISOString()
-        }
+      // Simulate order creation (replace with your actual order creation logic)
+      const orderId = 'ORD' + Date.now();
+      
+      // Update battery stock locally
+      const updatedBatteries = batteries.map(battery => 
+        battery.id === selectedBattery.id 
+          ? { ...battery, quantity: battery.quantity - quantity }
+          : battery
       );
-
-      // Update battery stock
-      const newQuantity = selectedBattery.quantity - quantity;
-      await databases.updateDocument(
-        'main',
-        'batteries',
-        selectedBattery.$id,
-        {
-          quantity: newQuantity
-        }
-      );
-
-      // Refresh batteries list
-      loadBatteries();
+      
+      setBatteries(updatedBatteries);
 
       // Process payment
-      processPayment(paymentMethod, totalAmount, selectedBattery, order.$id);
+      processPayment(paymentMethod, totalAmount, selectedBattery, orderId);
 
     } catch (error) {
       console.error('Error creating order:', error);
@@ -142,10 +109,15 @@ export default function Batteries() {
         window.open(`tel:*211*1*1*${totalAmount}%23`, '_blank');
         break;
       case 'bank':
-        alert(`Bank Transfer Details:\n\nBank: Standard Bank\nAccount: 910000000123\nBranch: 051\nAmount: ${formatPrice(totalAmount)}\nReference: BATT${battery.$id}-${orderId}`);
+        alert(`Bank Transfer Details:\n\nBank: Standard Bank\nAccount: 910000000123\nBranch: 051\nAmount: ${formatPrice(totalAmount)}\nReference: BATT${battery.id}-${orderId}`);
         break;
     }
     
+    setShowPaymentModal(false);
+    setSelectedBattery(null);
+  };
+
+  const handleBackFromPayment = () => {
     setShowPaymentModal(false);
     setSelectedBattery(null);
   };
@@ -174,17 +146,12 @@ export default function Batteries() {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-white mb-4">Car Batteries</h1>
         <p className="text-xl text-gray-300">Reliable batteries for all vehicle types</p>
-        {!user && (
-          <div className="mt-4 p-3 bg-yellow-900 bg-opacity-50 rounded-lg max-w-md mx-auto">
-            <p className="text-yellow-400">⚠️ Please login to make purchases</p>
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
         {batteries.map((battery: any) => (
           <div 
-            key={battery.$id} 
+            key={battery.id} 
             className={`bg-gray-800 rounded-2xl p-6 border transition duration-300 ${
               battery.quantity === 0 
                 ? 'border-red-500 opacity-70' 
@@ -210,14 +177,14 @@ export default function Batteries() {
               <span className="text-green-400 font-bold text-lg">{formatPrice(battery.price)}</span>
               <button 
                 onClick={() => handleBuyNow(battery)}
-                disabled={!user || battery.quantity === 0}
+                disabled={battery.quantity === 0}
                 className={`px-4 py-2 rounded-lg transition duration-200 ${
-                  !user || battery.quantity === 0
+                  battery.quantity === 0
                     ? 'bg-gray-600 cursor-not-allowed text-gray-400'
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                 }`}
               >
-                {!user ? 'Login to Buy' : battery.quantity === 0 ? 'Out of Stock' : 'Buy Now'}
+                {battery.quantity === 0 ? 'Out of Stock' : 'Buy Now'}
               </button>
             </div>
           </div>
@@ -232,7 +199,7 @@ export default function Batteries() {
               <h2 className="text-2xl font-bold text-white">Complete Your Purchase</h2>
               <button 
                 onClick={() => setShowPaymentModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white text-2xl"
               >
                 ✕
               </button>
@@ -270,65 +237,124 @@ export default function Batteries() {
                 <span className="text-green-400 font-bold text-xl">{formatPrice(totalAmount)}</span>
               </div>
             </div>
-
-            {/* Payment Methods */}
+ {/* Payment Methods */}
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-white mb-4">Choose Payment Method</h3>
               
               {/* TNM Mpamba */}
               <button
                 onClick={() => handlePayment('mpamba')}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between"
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between group"
               >
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3">
-                    <span className="text-purple-600 font-bold">T</span>
+                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 shadow-lg">
+                    {/* Custom TNM Mpamba Icon */}
+                    <Image 
+                      src="/Mpamba.jpg" 
+                      alt="TNM Mpamba" 
+                      width={24} 
+                      height={24}
+                      className="object-contain"
+                    />
                   </div>
-                  <span>TNM Mpamba</span>
+                  <div className="text-left">
+                    <div className="font-bold">TNM Mpamba</div>
+                    <div className="text-sm text-purple-200">*444# • Fast & Secure</div>
+                  </div>
                 </div>
-                <span>→</span>
+                <span className="text-white group-hover:translate-x-1 transition-transform">→</span>
               </button>
 
               {/* Airtel Money */}
               <button
                 onClick={() => handlePayment('airtel')}
-                className="w-full bg-red-600 hover:bg-red-700 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between"
+                className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between group"
               >
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3">
-                    <span className="text-red-600 font-bold">A</span>
+                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 shadow-lg">
+                    {/* Custom Airtel Money Icon */}
+                    <Image 
+                      src="/Airtel.jpg" 
+                      alt="Airtel Money" 
+                      width={24} 
+                      height={24}
+                      className="object-contain"
+                    />
                   </div>
-                  <span>Airtel Money</span>
+                  <div className="text-left">
+                    <div className="font-bold">Airtel Money</div>
+                    <div className="text-sm text-red-200">*211# • Quick & Easy</div>
+                  </div>
                 </div>
-                <span>→</span>
+                <span className="text-white group-hover:translate-x-1 transition-transform">→</span>
               </button>
 
               {/* Bank Transfer */}
               <button
                 onClick={() => handlePayment('bank')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between"
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between group"
               >
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3">
-                    <span className="text-blue-600 font-bold">B</span>
+                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 shadow-lg">
+                    {/* Custom Bank Transfer Icon */}
+                    <Image 
+                      src="/NB.png" 
+                      alt="Bank Transfer" 
+                      width={24} 
+                      height={24}
+                      className="object-contain"
+                    />
                   </div>
-                  <span>Bank Transfer</span>
+                  <div className="text-left">
+                    <div className="font-bold">Bank Transfer</div>
+                    <div className="text-sm text-blue-200">Direct Bank Payment</div>
+                  </div>
                 </div>
-                <span>→</span>
+                <span className="text-white group-hover:translate-x-1 transition-transform">→</span>
               </button>
+              {/* Back Button */}
+            <div className="mt-6">
+              <button
+                onClick={handleBackFromPayment}
+                className="w-full bg-gray-600 hover:bg-gray-500 text-white py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center group"
+              >
+                <svg className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Batteries
+              </button>
+            </div>
+            </div>
+
+            {/* Payment Instructions */}
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center text-sm text-gray-300">
+                <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                <span>Select your preferred payment method</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-300">
+                <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
+                <span>You'll be redirected to complete payment</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-300">
+                <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
+                <span>Order confirmation will be sent via SMS</span>
+              </div>
             </div>
 
             {/* Currency Notice */}
-            <div className="mt-4 p-3 bg-green-900 bg-opacity-30 rounded-lg">
-              <p className="text-green-400 text-sm text-center">
-                💰 All prices in Malawi Kwacha (MWK)
+            <div className="mt-6 p-3 bg-green-900 bg-opacity-30 rounded-lg border border-green-800">
+              <p className="text-green-400 text-sm text-center flex items-center justify-center">
+                <span className="mr-2">💰</span>
+                All prices in Malawi Kwacha (MWK)
               </p>
             </div>
 
             {/* Security Notice */}
-            <div className="mt-4 p-3 bg-yellow-900 bg-opacity-30 rounded-lg">
-              <p className="text-yellow-400 text-sm text-center">
-                🔒 Secure Payment • Your transaction is protected
+            <div className="mt-4 p-3 bg-yellow-900 bg-opacity-30 rounded-lg border border-yellow-800">
+              <p className="text-yellow-400 text-sm text-center flex items-center justify-center">
+                <span className="mr-2">🔒</span>
+                Secure Payment • Your transaction is protected
               </p>
             </div>
           </div>

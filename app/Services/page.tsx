@@ -19,8 +19,8 @@ export default function services() {
     },
     { 
       id: 3, 
-      name: 'Cars', 
-      description: 'Complete car service and maintenance', 
+      name: 'Car Drivers', 
+      description: 'Experienced drivers', 
       icon: '🚗',
       href: '/Services/Cars'
     },

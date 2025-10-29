@@ -8,7 +8,11 @@ export default function Users() {
   const [editingUser, setEditingUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [errors, setErrors] = useState({});
   const router = useRouter();
+
+  // Main admin ID that cannot be deleted
+  const MAIN_ADMIN_ID = 1;
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('adminAuthenticated');
@@ -26,14 +30,16 @@ export default function Users() {
         // Initialize with default admin user
         const defaultUsers = [
           {
-            id: 1,
+            id: MAIN_ADMIN_ID,
             firstName: 'Admin',
             lastName: 'User',
+            username: 'admin',
             email: 'admin@bodeautomotive.com',
             phone: '+265 888 123 456',
             role: 'admin',
             status: 'active',
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            isMainAdmin: true
           }
         ];
         setUsers(defaultUsers);
@@ -45,6 +51,76 @@ export default function Users() {
     loadUsers();
   }, [router]);
 
+  // Validate user data for duplicates
+  const validateUser = (userData, isNewUser = false) => {
+    const newErrors = {};
+
+    // Check for duplicate username with null safety
+    if (userData.username) {
+      const duplicateUsername = users.find(user => 
+        user.username && 
+        user.username.toLowerCase() === userData.username.toLowerCase() &&
+        (isNewUser || user.id !== userData.id)
+      );
+      if (duplicateUsername) {
+        newErrors.username = 'Username already exists';
+      }
+    }
+
+    // Check for duplicate email with null safety
+    if (userData.email) {
+      const duplicateEmail = users.find(user => 
+        user.email && 
+        user.email.toLowerCase() === userData.email.toLowerCase() &&
+        (isNewUser || user.id !== userData.id)
+      );
+      if (duplicateEmail) {
+        newErrors.email = 'Email already exists';
+      }
+    }
+
+    // Check for duplicate phone (optional) with null safety
+    if (userData.phone) {
+      const duplicatePhone = users.find(user => 
+        user.phone && 
+        user.phone === userData.phone &&
+        (isNewUser || user.id !== userData.id)
+      );
+      if (duplicatePhone) {
+        newErrors.phone = 'Phone number already exists';
+      }
+    }
+
+    // Required field validation
+    if (!userData.firstName?.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
+    if (!userData.lastName?.trim()) {
+      newErrors.lastName = 'Last name is required';
+    }
+    if (!userData.username?.trim()) {
+      newErrors.username = 'Username is required';
+    }
+    if (!userData.email?.trim()) {
+      newErrors.email = 'Email is required';
+    }
+    if (!userData.phone?.trim()) {
+      newErrors.phone = 'Phone is required';
+    }
+
+    // Email format validation
+    if (userData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Username format validation
+    if (userData.username && !/^[a-zA-Z0-9_]+$/.test(userData.username)) {
+      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+    }
+
+    return newErrors;
+  };
+
   const handleSave = () => {
     localStorage.setItem('users', JSON.stringify(users));
     alert('Users saved successfully!');
@@ -52,58 +128,121 @@ export default function Users() {
 
   const handleEdit = (user: any) => {
     setEditingUser({ ...user });
+    setErrors({});
     setShowUserModal(true);
   };
 
   const handleUpdate = () => {
     if (editingUser) {
+      // FIXED: Better logic to determine if it's a new user
+      const isNewUser = !users.some(user => user.id === editingUser.id);
+      const validationErrors = validateUser(editingUser, isNewUser);
+      
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
+
       let updatedUsers;
       
-      if (editingUser.id > 1000) {
-        // Add new user
-        updatedUsers = [...users, { ...editingUser, createdAt: new Date().toISOString() }];
+      if (isNewUser) {
+        // Add new user with proper ID generation
+        const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 2;
+        updatedUsers = [...users, { 
+          ...editingUser, 
+          id: newId,
+          createdAt: new Date().toISOString()
+        }];
       } else {
         // Update existing user
         updatedUsers = users.map((user: any) => 
-          user.id === editingUser.id ? editingUser : user
+          user.id === editingUser.id ? { ...editingUser } : user
         );
       }
       
       setUsers(updatedUsers);
+      localStorage.setItem('users', JSON.stringify(updatedUsers));
       setEditingUser(null);
       setShowUserModal(false);
+      setErrors({});
+      
+      alert(isNewUser ? 'User added successfully!' : 'User updated successfully!');
     }
   };
 
   const handleAddNew = () => {
     const newUser = {
-      id: Date.now(),
+      id: 0, // Use 0 as temporary ID for new users
       firstName: '',
       lastName: '',
+      username: '',
       email: '',
       phone: '',
       role: 'customer',
       status: 'active',
     };
     setEditingUser(newUser);
+    setErrors({});
     setShowUserModal(true);
   };
 
   const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-      const updatedUsers = users.filter((user: any) => user.id !== id);
-      setUsers(updatedUsers);
-      localStorage.setItem('users', JSON.stringify(updatedUsers));
-      alert('User deleted successfully!');
+    const userToDelete = users.find(user => user.id === id);
+    
+    if (!userToDelete) return;
+
+    // Prevent deletion of main admin
+    if (id === MAIN_ADMIN_ID) {
+      alert('Cannot delete the main administrator account.');
+      return;
     }
+
+    // Special warning for admin users
+    if (userToDelete.role === 'admin') {
+      if (!confirm('WARNING: This is an administrator account. Are you sure you want to delete this admin user?')) {
+        return;
+      }
+    } else {
+      if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        return;
+      }
+    }
+
+    const updatedUsers = users.filter((user: any) => user.id !== id);
+    setUsers(updatedUsers);
+    localStorage.setItem('users', JSON.stringify(updatedUsers));
+    
+    const userType = userToDelete.role === 'admin' ? 'Admin user' : 'User';
+    alert(`${userType} deleted successfully!`);
   };
 
   const handleStatusToggle = (id: number, currentStatus: string) => {
+    // Prevent deactivating main admin
+    if (id === MAIN_ADMIN_ID) {
+      alert('Cannot deactivate the main administrator account.');
+      return;
+    }
+
     const updatedUsers = users.map((user: any) => 
       user.id === id ? { ...user, status: currentStatus === 'active' ? 'inactive' : 'active' } : user
     );
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
+  };
+
+  const handleFieldChange = (field: string, value: string) => {
+    setEditingUser(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Clear error for this field when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
   };
 
   const renderField = (label: string, value: any, field: string, type = 'text', options = []) => (
@@ -112,11 +251,10 @@ export default function Users() {
       {type === 'select' ? (
         <select
           value={value || ''}
-          onChange={(e) => setEditingUser({
-            ...editingUser,
-            [field]: e.target.value
-          })}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+          onChange={(e) => handleFieldChange(field, e.target.value)}
+          className={`w-full px-3 py-2 bg-gray-700 border rounded text-white ${
+            errors[field] ? 'border-red-500' : 'border-gray-600'
+          }`}
         >
           {options.map(option => (
             <option key={option.value} value={option.value}>
@@ -128,16 +266,33 @@ export default function Users() {
         <input
           type={type}
           value={value || ''}
-          onChange={(e) => setEditingUser({
-            ...editingUser,
-            [field]: e.target.value
-          })}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+          onChange={(e) => handleFieldChange(field, e.target.value)}
+          className={`w-full px-3 py-2 bg-gray-700 border rounded text-white ${
+            errors[field] ? 'border-red-500' : 'border-gray-600'
+          }`}
           placeholder={`Enter ${label.toLowerCase()}`}
         />
       )}
+      {errors[field] && (
+        <p className="text-red-400 text-xs mt-1">{errors[field]}</p>
+      )}
     </div>
   );
+
+  // Check if user can be deleted
+  const canDeleteUser = (user: any) => {
+    return user.id !== MAIN_ADMIN_ID;
+  };
+
+  // Check if user status can be toggled
+  const canToggleStatus = (user: any) => {
+    return user.id !== MAIN_ADMIN_ID;
+  };
+
+  // Safe username display
+  const getUsername = (user: any) => {
+    return user.username || 'No username';
+  };
 
   if (isLoading) {
     return (
@@ -221,13 +376,17 @@ export default function Users() {
                     <td className="p-4">
                       <div>
                         <div className="font-bold">{user.firstName} {user.lastName}</div>
+                        <div className="text-gray-400 text-sm">@{getUsername(user)}</div>
                         <div className="text-gray-400 text-sm">ID: {user.id}</div>
+                        {user.id === MAIN_ADMIN_ID && (
+                          <div className="text-xs text-yellow-400 font-bold mt-1">MAIN ADMIN</div>
+                        )}
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="text-sm">
-                        <div>{user.email}</div>
-                        <div className="text-gray-400">{user.phone}</div>
+                        <div>{user.email || 'No email'}</div>
+                        <div className="text-gray-400">{user.phone || 'No phone'}</div>
                       </div>
                     </td>
                     <td className="p-4">
@@ -237,22 +396,25 @@ export default function Users() {
                           : 'bg-blue-600 text-white'
                       }`}>
                         {user.role}
+                        {user.id === MAIN_ADMIN_ID && ' ★'}
                       </span>
                     </td>
                     <td className="p-4">
                       <button
                         onClick={() => handleStatusToggle(user.id, user.status)}
+                        disabled={!canToggleStatus(user)}
                         className={`px-2 py-1 rounded-full text-xs font-bold ${
                           user.status === 'active' 
                             ? 'bg-green-600 text-white hover:bg-green-700' 
                             : 'bg-red-600 text-white hover:bg-red-700'
-                        }`}
+                        } ${!canToggleStatus(user) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title={!canToggleStatus(user) ? 'Cannot deactivate main admin' : ''}
                       >
                         {user.status}
                       </button>
                     </td>
                     <td className="p-4 text-sm text-gray-400">
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
                     </td>
                     <td className="p-4">
                       <div className="flex space-x-2">
@@ -262,13 +424,22 @@ export default function Users() {
                         >
                           Edit
                         </button>
-                        {user.role !== 'admin' && (
+                        {canDeleteUser(user) && (
                           <button
                             onClick={() => handleDelete(user.id)}
                             className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                            title={user.role === 'admin' ? 'Delete admin user' : 'Delete user'}
                           >
                             Delete
                           </button>
+                        )}
+                        {!canDeleteUser(user) && (
+                          <span 
+                            className="bg-gray-600 text-gray-400 px-3 py-1 rounded text-sm cursor-not-allowed"
+                            title="Main admin cannot be deleted"
+                          >
+                            Delete
+                          </span>
                         )}
                       </div>
                     </td>
@@ -285,7 +456,7 @@ export default function Users() {
             <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md border border-gray-700">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-white">
-                  {editingUser.id > 1000 ? 'Add New User' : 'Edit User'}
+                  {!users.some(user => user.id === editingUser.id) ? 'Add New User' : 'Edit User'}
                 </h2>
                 <button 
                   onClick={() => setShowUserModal(false)}
@@ -301,6 +472,7 @@ export default function Users() {
                   {renderField('Last Name', editingUser.lastName, 'lastName')}
                 </div>
                 
+                {renderField('Username', editingUser.username, 'username')}
                 {renderField('Email', editingUser.email, 'email', 'email')}
                 {renderField('Phone', editingUser.phone, 'phone', 'tel')}
                 
@@ -320,7 +492,7 @@ export default function Users() {
                   onClick={handleUpdate}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex-1"
                 >
-                  {editingUser.id > 1000 ? 'Add User' : 'Update User'}
+                  {!users.some(user => user.id === editingUser.id) ? 'Add User' : 'Update User'}
                 </button>
                 <button
                   onClick={() => setShowUserModal(false)}

@@ -13,12 +13,12 @@ export default function Cars() {
     } else {
       // Fallback to default data
       setServices([
-        { id: 1, name: 'Tyre Fitting', description: 'Professional tyre installation and balancing', price: 25 },
-        { id: 2, name: 'Complete Service', description: 'Full vehicle service and inspection', price: 150 },
-        { id: 3, name: 'Engine Tune-up', description: 'Engine performance optimization', price: 80 },
-        { id: 4, name: 'Brake Service', description: 'Brake inspection and pad replacement', price: 60 },
-        { id: 5, name: 'AC Service', description: 'Air conditioning system service', price: 70 },
-        { id: 6, name: 'Wheel Alignment', description: 'Precision wheel alignment service', price: 45 },
+        { id: 1, name: 'Truck driver', description: 'Professional in driving trucks for 10 years', price: 355000 },
+        { id: 2, name: '3 ton and below driver', description: 'Professional in driving small cars for 11 years', price: 2500000 },
+        { id: 3, name: 'heavy and abnormal driver', description: 'Professional in driving heavy vehicles for 20 years', price: 400000 },
+        { id: 4, name: 'Cruiser driver', description: 'Professional in driving Cruiser for 7 years', price: 260000 },
+        { id: 5, name: 'Rangers driver', description: 'Professional in driving rangers for 15 years', price: 270000 },
+        { id: 6, name: '5 and above ton driver', description: 'Professional in driving vehicles for 19 years', price: 245000 },
       ]);
     }
   }, []);
@@ -35,8 +35,8 @@ export default function Cars() {
       </Link>
 
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-white mb-4">Car Services</h1>
-        <p className="text-xl text-gray-300">Comprehensive car maintenance services</p>
+        <h1 className="text-4xl font-bold text-white mb-4">Car Drivers</h1>
+        <p className="text-xl text-gray-300">Hire Us, safe tavel and enjoy the jounerny</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">

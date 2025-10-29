@@ -11,40 +11,40 @@ export default function About() {
       position: "Founder & Head Mechanic",
       experience: "15+ years",
       specialty: "Engine Diagnostics & Performance Tuning",
-      image: "/team-member1.jpg" // Replace with actual image
+      image: "/Bode.jpg" 
     },
     {
       name: "Mishek Chirwa",
       position: "Service Manager",
-      experience: "10000+ years",
+      experience: "16+ months",
       specialty: "Customer Service & Quality Control",
-      image: "/team-member2.jpg"
+      image: "/mishek.jpg" 
     },
     {
       name: "Joseph Mbukwa",
       position: "Programmer",
       experience: "12+ years",
       specialty: "ICT DEPARTMENT",
-      image: "/team-member3.jpg"
+      image: "/Mbukwa.jpg" 
     },
     {
       name: "Brian Ndhluvu",
       position: "Engineer",
       experience: "8+ years",
       specialty: "Genuine Parts & Inventory Management",
-      image: "/team-member4.jpg"
+      image: "/Braian.jpg" 
     }
   ];
 
   const services = [
     { name: "Engine Repair", icon: "⚙️" },
-    { name: "Brake Service", icon: "🛑" },
-    { name: "Transmission", icon: "🔧" },
-    { name: "Electrical", icon: "⚡" },
-    { name: "AC Service", icon: "❄️" },
+    { name: "Engineer", icon: "👨‍✈️" },
+    { name: "Tubes selling", icon: "🌀" },
+    { name: "Drivers", icon: "👨‍✈️" },
+    { name: "Car hiring", icon: "🚗" },
     { name: "Oil Change", icon: "🛢️" },
-    { name: "Tire Service", icon: "🌀" },
-    { name: "Performance Tuning", icon: "🏎️" }
+    { name: "Tire Service", icon: "🛞" },
+    { name: "Batteries selling", icon: "🔋" }
   ];
 
   return (
@@ -68,7 +68,7 @@ export default function About() {
       <section className="relative py-20 px-4">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
-          style={{ backgroundImage: "url('/Mechanic.jpg')" }}
+          style={{ backgroundImage: "url('/Mechanic.jpg')" }} // From public folder
         ></div>
         <div className="container mx-auto relative z-10 text-center">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
@@ -157,7 +157,7 @@ export default function About() {
                   <div>
                     <h3 className="text-2xl font-bold mb-4 text-white">From Humble Beginnings</h3>
                     <p className="text-gray-300 mb-4">
-                      Founded in 2010 by John Bode, what started as a small garage with just two lifts 
+                      Founded in 2010 by Calvin Bode, what started as a small garage with just two lifts 
                       has grown into one of the most trusted automotive service centers in the region.
                     </p>
                     <p className="text-gray-300 mb-4">
@@ -190,8 +190,21 @@ export default function About() {
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {teamMembers.map((member, index) => (
                     <div key={index} className="bg-gray-700 rounded-lg p-6 text-center transform hover:scale-105 transition duration-300">
-                      <div className="w-24 h-24 bg-gray-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
-                        👤
+                      <div className="w-32 h-32 mx-auto mb-4 flex items-center justify-center overflow-hidden rounded-full border-4 border-green-500">
+                        {/* Team member photo from public folder */}
+                        <img 
+                          src={member.image} 
+                          alt={member.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback if image doesn't exist
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                        <div className="w-full h-full bg-gray-600 rounded-full flex items-center justify-center text-2xl hidden">
+                          👤
+                        </div>
                       </div>
                       <h3 className="text-xl font-bold text-white mb-2">{member.name}</h3>
                       <p className="text-green-400 font-semibold mb-2">{member.position}</p>
