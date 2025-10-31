@@ -9,17 +9,14 @@ export default function Dashboard() {
     tubes: [],
     engineer: [],
     batteries: [],
-    oil_change: [] // Fixed to match your localStorage key
+    oil_change: []
   });
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Check if admin is authenticated
     const checkAuth = () => {
       const isAuthenticated = localStorage.getItem('adminAuthenticated');
-      console.log('Auth check:', isAuthenticated); // Debug log
-      
       if (!isAuthenticated) {
         router.push('/Admin/login');
         return false;
@@ -27,20 +24,17 @@ export default function Dashboard() {
       return true;
     };
 
-    // Load services data only if authenticated
     const loadServices = async () => {
       if (!checkAuth()) return;
 
-      // In a real app, this would be an API call
       const data = {
         tyres: JSON.parse(localStorage.getItem('tyres') || '[]'),
         tubes: JSON.parse(localStorage.getItem('tubes') || '[]'),
         engineer: JSON.parse(localStorage.getItem('engineer') || '[]'),
         batteries: JSON.parse(localStorage.getItem('batteries') || '[]'),
-        oil_change: JSON.parse(localStorage.getItem('oil_change') || '[]'), // Fixed key
+        oil_change: JSON.parse(localStorage.getItem('oil_change') || '[]'),
       };
       
-      // If no data exists, initialize with default data
       if (data.tyres.length === 0) {
         const defaultData = {
           tyres: [
@@ -56,7 +50,7 @@ export default function Dashboard() {
           batteries: [
             { id: 1, type: 'Lead Acid Battery', capacity: '45Ah', warranty: '1 Year', price: 150000, quantity: 20 },
           ],
-          oil_change: [ // Fixed key
+          oil_change: [
             { id: 1, type: 'Petrol Engine Oil', grade: '5W-30 Synthetic', price: 45000, quantity: 40 },
           ]
         };
@@ -73,7 +67,6 @@ export default function Dashboard() {
       setIsLoading(false);
     };
 
-    // Small delay to ensure localStorage is available
     setTimeout(loadServices, 100);
   }, [router]);
 
@@ -82,14 +75,12 @@ export default function Dashboard() {
     router.push('/Admin/login');
   };
 
-  // Fixed categories to match your file structure
   const categories = [
     { key: 'tyres', name: 'Tyres', path: 'Tyres', count: services.tyres.length, icon: '🛞' },
     { key: 'tubes', name: 'Tubes', path: 'Tubes', count: services.tubes.length, icon: '🌀' },
     { key: 'engineer', name: 'Engineers', path: 'Engineers', count: services.engineer.length, icon: '🔧' },
     { key: 'batteries', name: 'Batteries', path: 'Batteries', count: services.batteries.length, icon: '🔋' },
     { key: 'oil_change', name: 'Oil Change', path: 'Oil_change', count: services.oil_change.length, icon: '🛢️' },
-    { key: 'users', name: 'Users', path: 'Users', count: 0, icon: '👥' }, 
   ];
 
   if (isLoading) {
@@ -121,7 +112,6 @@ export default function Dashboard() {
         backgroundAttachment: 'fixed'
       }}
     >
-      {/* Dark overlay for better readability */}
       <div className="absolute inset-0 bg-black/50"></div>
 
       <div className="max-w-6xl mx-auto relative z-10 w-full">
@@ -203,15 +193,21 @@ export default function Dashboard() {
         <div className="mt-8 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
           <h3 className="text-xl font-bold text-white mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="bg-green-600 hover:bg-green-500 text-white py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 text-center">
-              Add New Product
-            </button>
-            <button className="bg-blue-600 hover:bg-blue-500 text-white py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 text-center">
-              View Orders
-            </button>
-            <button className="bg-purple-600 hover:bg-purple-500 text-white py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 text-center">
-              System Settings
-            </button>
+            <Link href="/Admin/AddProduct">
+              <button className="w-full bg-green-600 hover:bg-green-500 text-white py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 text-center">
+                Add New Product
+              </button>
+            </Link>
+            <Link href="/Admin/ViewOrders">
+              <button className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 text-center">
+                View Orders
+              </button>
+            </Link>
+            <Link href="/Admin/SystemSetting">
+              <button className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 text-center">
+                System Settings
+              </button>
+            </Link>
           </div>
         </div>
       </div>
