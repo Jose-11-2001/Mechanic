@@ -126,62 +126,84 @@ export default function Batteries() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading batteries...</div>
+      <div 
+        className="min-h-screen flex items-center justify-center relative"
+        style={{
+          backgroundImage: "url('/mechanic4.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="text-white text-xl relative z-10">Loading batteries...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-8">
+    <div 
+      className="min-h-screen flex flex-col items-center justify-center p-8 relative"
+      style={{
+        backgroundImage: "url('/mechanic4.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Dark overlay for better readability */}
+      <div className="absolute inset-0 bg-black/50"></div>
+      
       {/* Back Arrow */}
       <Link href="/Services" className="absolute top-6 left-6 z-20">
-        <button className="text-white hover:text-gray-300 transition duration-200">
+        <button className="text-white hover:text-gray-300 transition duration-200 bg-black/30 rounded-full p-2">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
       </Link>
 
-      <div className="text-center mb-12">
+      <div className="text-center mb-12 relative z-10">
         <h1 className="text-4xl font-bold text-white mb-4">Car Batteries</h1>
-        <p className="text-xl text-gray-300">Reliable batteries for all vehicle types</p>
+        <p className="text-xl text-white/90">Reliable batteries for all vehicle types</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl relative z-10">
         {batteries.map((battery: any) => (
           <div 
             key={battery.id} 
-            className={`bg-gray-800 rounded-2xl p-6 border transition duration-300 ${
+            className={`bg-white/10 backdrop-blur-md rounded-2xl p-6 border transition duration-300 transform hover:scale-105 ${
               battery.quantity === 0 
-                ? 'border-red-500 opacity-70' 
-                : 'border-gray-700 hover:border-blue-500'
+                ? 'border-red-400/50 opacity-70' 
+                : 'border-white/20 hover:border-blue-400/50'
             }`}
           >
             <div className="text-center mb-4">
               <div className="text-3xl mb-2">🔋</div>
               <h3 className="text-xl font-bold text-white">{battery.type}</h3>
-              <p className="text-gray-300">Capacity: {battery.capacity}</p>
-              <p className="text-yellow-400">Warranty: {battery.warranty}</p>
+              <p className="text-white/80">Capacity: {battery.capacity}</p>
+              <p className="text-yellow-300">Warranty: {battery.warranty}</p>
               <p className={`mt-2 ${
                 battery.quantity === 0 
-                  ? 'text-red-400' 
+                  ? 'text-red-300' 
                   : battery.quantity < 5 
-                    ? 'text-orange-400' 
-                    : 'text-green-400'
+                    ? 'text-orange-300' 
+                    : 'text-green-300'
               }`}>
                 {battery.quantity === 0 ? 'Out of Stock' : `In Stock: ${battery.quantity}`}
               </p>
             </div>
             <div className="flex justify-between items-center mt-4">
-              <span className="text-green-400 font-bold text-lg">{formatPrice(battery.price)}</span>
+              <span className="text-green-300 font-bold text-lg">{formatPrice(battery.price)}</span>
               <button 
                 onClick={() => handleBuyNow(battery)}
                 disabled={battery.quantity === 0}
-                className={`px-4 py-2 rounded-lg transition duration-200 ${
+                className={`px-4 py-2 rounded-lg transition duration-200 transform hover:scale-105 ${
                   battery.quantity === 0
                     ? 'bg-gray-600 cursor-not-allowed text-gray-400'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg'
                 }`}
               >
                 {battery.quantity === 0 ? 'Out of Stock' : 'Buy Now'}
@@ -193,62 +215,62 @@ export default function Batteries() {
 
       {/* Payment Modal */}
       {showPaymentModal && selectedBattery && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md border border-gray-700">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 w-full max-w-md border border-white/20 relative z-50">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-white">Complete Your Purchase</h2>
               <button 
                 onClick={() => setShowPaymentModal(false)}
-                className="text-gray-400 hover:text-white text-2xl"
+                className="text-gray-400 hover:text-white text-2xl transition duration-200"
               >
                 ✕
               </button>
             </div>
 
             {/* Product Info */}
-            <div className="bg-gray-700 rounded-lg p-4 mb-6">
+            <div className="bg-white/10 rounded-lg p-4 mb-6 border border-white/20">
               <h3 className="text-lg font-bold text-white mb-2">{selectedBattery.type}</h3>
-              <p className="text-gray-300">Capacity: {selectedBattery.capacity}</p>
-              <p className="text-yellow-400">Warranty: {selectedBattery.warranty}</p>
-              <p className="text-blue-400">Unit Price: {formatPrice(selectedBattery.price)}</p>
+              <p className="text-white/80">Capacity: {selectedBattery.capacity}</p>
+              <p className="text-yellow-300">Warranty: {selectedBattery.warranty}</p>
+              <p className="text-blue-300">Unit Price: {formatPrice(selectedBattery.price)}</p>
               
               {/* Quantity Selector */}
               <div className="flex items-center justify-between mt-4">
-                <label className="text-gray-300">Quantity:</label>
+                <label className="text-white/80">Quantity:</label>
                 <div className="flex items-center space-x-2">
                   <button 
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="bg-gray-600 hover:bg-gray-500 text-white w-8 h-8 rounded"
+                    className="bg-white/20 hover:bg-white/30 text-white w-8 h-8 rounded transition duration-200"
                   >
                     -
                   </button>
                   <span className="text-white font-bold">{quantity}</span>
                   <button 
                     onClick={() => setQuantity(Math.min(selectedBattery.quantity, quantity + 1))}
-                    className="bg-gray-600 hover:bg-gray-500 text-white w-8 h-8 rounded"
+                    className="bg-white/20 hover:bg-white/30 text-white w-8 h-8 rounded transition duration-200"
                   >
                     +
                   </button>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-600">
-                <span className="text-gray-300">Total Amount:</span>
-                <span className="text-green-400 font-bold text-xl">{formatPrice(totalAmount)}</span>
+              <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/20">
+                <span className="text-white/80">Total Amount:</span>
+                <span className="text-green-300 font-bold text-xl">{formatPrice(totalAmount)}</span>
               </div>
             </div>
- {/* Payment Methods */}
+
+            {/* Payment Methods */}
             <div className="space-y-4">
               <h3 className="text-lg font-bold text-white mb-4">Choose Payment Method</h3>
               
               {/* TNM Mpamba */}
               <button
                 onClick={() => handlePayment('mpamba')}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between group"
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between group shadow-lg"
               >
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 shadow-lg">
-                    {/* Custom TNM Mpamba Icon */}
                     <Image 
                       src="/Mpamba.jpg" 
                       alt="TNM Mpamba" 
@@ -268,11 +290,10 @@ export default function Batteries() {
               {/* Airtel Money */}
               <button
                 onClick={() => handlePayment('airtel')}
-                className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between group"
+                className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between group shadow-lg"
               >
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 shadow-lg">
-                    {/* Custom Airtel Money Icon */}
                     <Image 
                       src="/Airtel.jpg" 
                       alt="Airtel Money" 
@@ -292,11 +313,10 @@ export default function Batteries() {
               {/* Bank Transfer */}
               <button
                 onClick={() => handlePayment('bank')}
-                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between group"
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white py-4 px-6 rounded-lg transition duration-200 flex items-center justify-between group shadow-lg"
               >
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 shadow-lg">
-                    {/* Custom Bank Transfer Icon */}
                     <Image 
                       src="/NB.png" 
                       alt="Bank Transfer" 
@@ -312,31 +332,32 @@ export default function Batteries() {
                 </div>
                 <span className="text-white group-hover:translate-x-1 transition-transform">→</span>
               </button>
+
               {/* Back Button */}
-            <div className="mt-6">
-              <button
-                onClick={handleBackFromPayment}
-                className="w-full bg-gray-600 hover:bg-gray-500 text-white py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center group"
-              >
-                <svg className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to Batteries
-              </button>
-            </div>
+              <div className="mt-6">
+                <button
+                  onClick={handleBackFromPayment}
+                  className="w-full bg-white/20 hover:bg-white/30 text-white py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center group shadow-lg"
+                >
+                  <svg className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back to Batteries
+                </button>
+              </div>
             </div>
 
             {/* Payment Instructions */}
             <div className="mt-6 space-y-3">
-              <div className="flex items-center text-sm text-gray-300">
+              <div className="flex items-center text-sm text-white/80">
                 <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
                 <span>Select your preferred payment method</span>
               </div>
-              <div className="flex items-center text-sm text-gray-300">
+              <div className="flex items-center text-sm text-white/80">
                 <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
                 <span>You'll be redirected to complete payment</span>
               </div>
-              <div className="flex items-center text-sm text-gray-300">
+              <div className="flex items-center text-sm text-white/80">
                 <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
                 <span>Order confirmation will be sent via SMS</span>
               </div>
@@ -344,7 +365,7 @@ export default function Batteries() {
 
             {/* Currency Notice */}
             <div className="mt-6 p-3 bg-green-900 bg-opacity-30 rounded-lg border border-green-800">
-              <p className="text-green-400 text-sm text-center flex items-center justify-center">
+              <p className="text-green-300 text-sm text-center flex items-center justify-center">
                 <span className="mr-2">💰</span>
                 All prices in Malawi Kwacha (MWK)
               </p>
@@ -352,7 +373,7 @@ export default function Batteries() {
 
             {/* Security Notice */}
             <div className="mt-4 p-3 bg-yellow-900 bg-opacity-30 rounded-lg border border-yellow-800">
-              <p className="text-yellow-400 text-sm text-center flex items-center justify-center">
+              <p className="text-yellow-300 text-sm text-center flex items-center justify-center">
                 <span className="mr-2">🔒</span>
                 Secure Payment • Your transaction is protected
               </p>

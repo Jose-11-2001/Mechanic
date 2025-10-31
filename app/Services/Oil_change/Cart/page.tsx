@@ -58,42 +58,62 @@ export default function Cart() {
     // Here you would typically redirect to a checkout page
   };
 
+  // Function to get the appropriate icon based on oil type
+  const getOilIcon = (type: string) => {
+    if (type.includes('Petrol') || type.includes('Diesel')) return '🛢️';
+    if (type.includes('Motorcycle')) return '🏍️';
+    if (type.includes('Gear')) return '⚙️';
+    return '🔧';
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center p-8">
+    <div 
+      className="min-h-screen flex flex-col items-center p-8 relative"
+      style={{
+        backgroundImage: "url('/mechanic4.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Dark overlay for better readability */}
+      <div className="absolute inset-0 bg-black/50"></div>
+      
       {/* Back Arrow */}
       <Link href="/Services/Oil_change" className="absolute top-6 left-6 z-20">
-        <button className="text-white hover:text-gray-300 transition duration-200">
+        <button className="text-white hover:text-gray-300 transition duration-200 bg-black/30 rounded-full p-2">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
       </Link>
 
-      <div className="text-center mb-8">
+      <div className="text-center mb-8 relative z-10">
         <h1 className="text-4xl font-bold text-white mb-2">Shopping Cart</h1>
-        <p className="text-xl text-gray-300">Review your selected oil services</p>
+        <p className="text-xl text-white/90">Review your selected oil services</p>
       </div>
 
       {cart.length === 0 ? (
-        <div className="text-center">
+        <div className="text-center relative z-10">
           <div className="text-6xl mb-4">🛒</div>
           <h2 className="text-2xl font-bold text-white mb-4">Your cart is empty</h2>
-          <p className="text-gray-300 mb-6">Add some oil services to get started</p>
+          <p className="text-white/80 mb-6">Add some oil services to get started</p>
           <Link href="/Services/Oil_change">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition duration-200">
+            <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg transition duration-200 transform hover:scale-105 shadow-lg">
               Browse Services
             </button>
           </Link>
         </div>
       ) : (
-        <div className="w-full max-w-4xl">
+        <div className="w-full max-w-4xl relative z-10">
           {/* Cart Items */}
-          <div className="bg-gray-800 rounded-2xl p-6 mb-6 border border-gray-700">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6 border border-white/20">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-white">Cart Items ({getTotalItems()})</h2>
               <button 
                 onClick={clearCart}
-                className="text-red-400 hover:text-red-300 text-sm transition duration-200"
+                className="text-red-300 hover:text-red-200 text-sm transition duration-200 bg-red-900/30 hover:bg-red-900/50 px-3 py-1 rounded-lg"
               >
                 Clear Cart
               </button>
@@ -101,13 +121,18 @@ export default function Cart() {
 
             <div className="space-y-4">
               {cart.map((item: any) => (
-                <div key={item.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg border border-gray-600">
+                <div key={item.id} className="flex items-center justify-between p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 hover:border-blue-400/30 transition duration-200">
                   <div className="flex items-center space-x-4">
-                    <div className="text-2xl">🛢️</div>
+                    <div className="text-2xl">{getOilIcon(item.type)}</div>
                     <div>
-                      <h3 className="text-lg font-bold text-white">{item.type}</h3>
-                      <p className="text-gray-300 text-sm">{item.grade}</p>
-                      <p className="text-green-400 font-bold">K{item.price} each</p>
+                      <h3 className="text-lg font-bold text-white">{item.grade}</h3>
+                      <p className="text-white/80 text-sm">{item.type}</p>
+                      <p className="text-green-300 font-bold">K{item.price} each</p>
+                      {item.quantity > 0 ? (
+                        <p className="text-green-300 text-xs mt-1">In Stock: {item.quantity}</p>
+                      ) : (
+                        <p className="text-orange-300 text-xs mt-1">Service Booking</p>
+                      )}
                     </div>
                   </div>
 
@@ -116,14 +141,14 @@ export default function Cart() {
                     <div className="flex items-center space-x-2">
                       <button 
                         onClick={() => updateQuantity(item.id, item.cartQuantity - 1)}
-                        className="bg-gray-600 hover:bg-gray-500 text-white w-8 h-8 rounded transition duration-200"
+                        className="bg-white/20 hover:bg-white/30 text-white w-8 h-8 rounded transition duration-200"
                       >
                         -
                       </button>
                       <span className="text-white font-bold min-w-8 text-center">{item.cartQuantity}</span>
                       <button 
                         onClick={() => updateQuantity(item.id, item.cartQuantity + 1)}
-                        className="bg-gray-600 hover:bg-gray-500 text-white w-8 h-8 rounded transition duration-200"
+                        className="bg-white/20 hover:bg-white/30 text-white w-8 h-8 rounded transition duration-200"
                       >
                         +
                       </button>
@@ -131,13 +156,13 @@ export default function Cart() {
 
                     {/* Item Total */}
                     <div className="text-right min-w-24">
-                      <p className="text-green-400 font-bold">K{item.price * item.cartQuantity}</p>
+                      <p className="text-green-300 font-bold">K{item.price * item.cartQuantity}</p>
                     </div>
 
                     {/* Remove Button */}
                     <button 
                       onClick={() => removeFromCart(item.id)}
-                      className="text-red-400 hover:text-red-300 transition duration-200"
+                      className="text-red-300 hover:text-red-200 transition duration-200 bg-red-900/30 hover:bg-red-900/50 p-2 rounded-lg"
                       title="Remove item"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,26 +176,26 @@ export default function Cart() {
           </div>
 
           {/* Order Summary */}
-          <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
             <h2 className="text-2xl font-bold text-white mb-4">Order Summary</h2>
             
             <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-gray-300">
+              <div className="flex justify-between text-white/80">
                 <span>Subtotal ({getTotalItems()} items):</span>
                 <span>K{calculateTotal()}</span>
               </div>
-              <div className="flex justify-between text-gray-300">
+              <div className="flex justify-between text-white/80">
                 <span>Service Fee:</span>
                 <span>K0</span>
               </div>
-              <div className="flex justify-between text-gray-300">
+              <div className="flex justify-between text-white/80">
                 <span>Tax:</span>
                 <span>K0</span>
               </div>
-              <div className="border-t border-gray-600 pt-3">
+              <div className="border-t border-white/20 pt-3">
                 <div className="flex justify-between text-xl font-bold text-white">
                   <span>Total:</span>
-                  <span>K{calculateTotal()}</span>
+                  <span className="text-green-300">K{calculateTotal()}</span>
                 </div>
               </div>
             </div>
@@ -178,13 +203,13 @@ export default function Cart() {
             {/* Action Buttons */}
             <div className="flex space-x-4">
               <Link href="/Services/Oil_change" className="flex-1">
-                <button className="w-full bg-gray-600 hover:bg-gray-500 text-white py-3 px-6 rounded-lg transition duration-200">
+                <button className="w-full bg-white/20 hover:bg-white/30 text-white py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105">
                   Continue Shopping
                 </button>
               </Link>
               <button 
                 onClick={handleCheckout}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg transition duration-200"
+                className="flex-1 bg-green-600 hover:bg-green-500 text-white py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105 shadow-lg"
               >
                 Proceed to Checkout
               </button>

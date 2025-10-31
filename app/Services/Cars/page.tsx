@@ -24,34 +24,57 @@ export default function Cars() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-8">
+    <div 
+      className="min-h-screen flex flex-col items-center justify-center p-8 relative"
+      style={{
+        backgroundImage: "url('/mechanic4.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Dark overlay for better readability */}
+      <div className="absolute inset-0 bg-black/50"></div>
+      
       {/* Back Arrow */}
       <Link href="/Services" className="absolute top-6 left-6 z-20">
-        <button className="text-white hover:text-gray-300 transition duration-200">
+        <button className="text-white hover:text-gray-300 transition duration-200 bg-black/30 rounded-full p-2">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
       </Link>
 
-      <div className="text-center mb-12">
+      <div className="text-center mb-12 relative z-10">
         <h1 className="text-4xl font-bold text-white mb-4">Car Drivers</h1>
-        <p className="text-xl text-gray-300">Hire Us, safe tavel and enjoy the jounerny</p>
+        <p className="text-xl text-white/90">Hire Us, safe travel and enjoy the journey</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl relative z-10">
         {services.map((service: any) => (
-          <div key={service.id} className="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-blue-500 transition duration-300">
+          <div key={service.id} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:border-blue-400/50 transition duration-300 hover:transform hover:scale-105">
             <div className="text-center mb-4">
               <div className="text-3xl mb-2">🚗</div>
               <h3 className="text-xl font-bold text-white">{service.name}</h3>
-              <p className="text-gray-300">{service.description}</p>
+              <p className="text-white/80">{service.description}</p>
             </div>
             <div className="flex justify-between items-center mt-4">
-              <span className="text-green-400 font-bold text-lg">K{service.price}</span>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
-                Book Service
-              </button>
+              <span className="text-green-300 font-bold text-lg">K{service.price}</span>
+              <Link 
+                href={{
+                  pathname: "/Book",
+                  query: { 
+                    service: service.name,
+                    price: service.price,
+                    description: service.description
+                  }
+                }}
+              >  
+                <button className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition duration-200 transform hover:scale-105 shadow-lg">
+                  Book Driver
+                </button>
+              </Link>
             </div>
           </div>
         ))}
