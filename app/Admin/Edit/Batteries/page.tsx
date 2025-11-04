@@ -3,9 +3,19 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+// Define the interface for battery items
+interface BatteryItem {
+  id: number;
+  type: string;
+  capacity: string;
+  warranty: string;
+  price: number;
+  quantity: number;
+}
+
 export default function Batteries() {
-  const [items, setItems] = useState([]);
-  const [editingItem, setEditingItem] = useState(null);
+  const [items, setItems] = useState<BatteryItem[]>([]);
+  const [editingItem, setEditingItem] = useState<BatteryItem | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const router = useRouter();
   const category = 'batteries';
@@ -24,7 +34,7 @@ export default function Batteries() {
     if (storedItems) {
       setItems(JSON.parse(storedItems));
     } else {
-      const defaultBatteries = [
+      const defaultBatteries: BatteryItem[] = [
         { id: 1, type: 'Lead Acid Battery', capacity: '45Ah', warranty: '1 Year', price: 150000, quantity: 20 },
         { id: 2, type: 'Maintenance Free', capacity: '60Ah', warranty: '2 Years', price: 200000, quantity: 15 },
         { id: 3, type: 'Calcium Battery', capacity: '75Ah', warranty: '3 Years', price: 280000, quantity: 10 },
@@ -47,13 +57,13 @@ export default function Batteries() {
     loadItems();
   };
 
-  const handleEdit = (item: any) => {
+  const handleEdit = (item: BatteryItem) => {
     setEditingItem({ ...item });
   };
 
   const handleUpdate = () => {
     if (editingItem) {
-      const updatedItems = items.map((item: any) => 
+      const updatedItems = items.map(item => 
         item.id === editingItem.id ? editingItem : item
       );
       setItems(updatedItems);
@@ -63,7 +73,7 @@ export default function Batteries() {
   };
 
   const handleAddNew = () => {
-    const newItem = {
+    const newItem: BatteryItem = {
       id: Date.now(),
       type: 'New Battery Type',
       capacity: '00Ah',
@@ -78,32 +88,32 @@ export default function Batteries() {
 
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this battery?')) {
-      const updatedItems = items.filter((item: any) => item.id !== id);
+      const updatedItems = items.filter(item => item.id !== id);
       setItems(updatedItems);
       setHasChanges(true);
     }
   };
 
-  const renderField = (label: string, value: any, field: string, type = 'text') => (
+  const renderField = (label: string, value: string | number, field: keyof BatteryItem, type = 'text') => (
     <div>
       <label className="block text-sm font-medium text-gray-300 mb-1">{label}</label>
       <input
         type={type}
         value={value || ''}
         onChange={(e) => {
-          setEditingItem({
-            ...editingItem,
-            [field]: type === 'number' ? Number(e.target.value) : e.target.value
-          });
-          setHasChanges(true);
+          if (editingItem) {
+            setEditingItem({
+              ...editingItem,
+              [field]: type === 'number' ? Number(e.target.value) : e.target.value
+            });
+            setHasChanges(true);
+          }
         }}
         className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded text-white placeholder-white/60"
         placeholder={`Enter ${label.toLowerCase()}`}
       />
     </div>
   );
-
-  if (!items) return <div>Loading...</div>;
 
   return (
     <div 
@@ -186,7 +196,7 @@ export default function Batteries() {
 
         {/* Batteries List */}
         <div className="grid grid-cols-1 gap-4">
-          {items.map((item: any) => (
+          {items.map((item) => (
             <div key={item.id} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:border-blue-400/30 transition duration-300">
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-4">

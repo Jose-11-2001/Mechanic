@@ -3,23 +3,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-// Define the interface for Battery
-interface Battery {
-  id: string;
-  type: string;
-  capacity: string;
-  warranty: string;
-  price: number;
-  quantity: number;
-}
-
 export default function Batteries() {
-  const [batteries, setBatteries] = useState<Battery[]>([]);
-  const [selectedBattery, setSelectedBattery] = useState<Battery | null>(null);
+  const [batteries, setBatteries] = useState([]);
+  const [selectedBattery, setSelectedBattery] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState(null);
 
   // Format price as Malawi Kwacha
   const formatPrice = (price: number) => {
@@ -57,7 +47,7 @@ export default function Batteries() {
     }
   };
 
-  const getDefaultBatteries = (): Battery[] => {
+  const getDefaultBatteries = () => {
     return [
       { id: '1', type: 'Lead Acid Battery', capacity: '45Ah', warranty: '1 Year', price: 150000, quantity: 20 },
       { id: '2', type: 'Maintenance Free', capacity: '60Ah', warranty: '2 Years', price: 200000, quantity: 15 },
@@ -68,7 +58,7 @@ export default function Batteries() {
     ];
   };
 
-  const handleBuyNow = (battery: Battery) => {
+  const handleBuyNow = (battery: any) => {
     if (battery.quantity < 1) {
       alert('Sorry, this battery is out of stock');
       return;
@@ -106,7 +96,7 @@ export default function Batteries() {
     }
   };
 
-  const processPayment = (paymentMethod: string, totalAmount: number, battery: Battery, orderId: string) => {
+  const processPayment = (paymentMethod: string, totalAmount: number, battery: any, orderId: string) => {
     // Simulate payment processing
     alert(`Redirecting to ${paymentMethod} payment...\n\nProduct: ${battery.type}\nQuantity: ${quantity}\nTotal: ${formatPrice(totalAmount)}\nOrder ID: ${orderId}`);
     
@@ -181,7 +171,7 @@ export default function Batteries() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl relative z-10">
-        {batteries.map((battery) => (
+        {batteries.map((battery: any) => (
           <div 
             key={battery.id} 
             className={`bg-white/10 backdrop-blur-md rounded-2xl p-6 border transition duration-300 transform hover:scale-105 ${
