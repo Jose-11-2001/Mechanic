@@ -3,8 +3,17 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+// Define the interface for services data
+interface ServicesData {
+  tyres: { id: number; size: string; brand: string; type: string; price: number; quantity: number; }[];
+  tubes: { id: number; size: string; type: string; valve: string; price: number; quantity: number; }[];
+  engineer: { id: number; name: string; description: string; price: number; }[];
+  batteries: { id: number; type: string; capacity: string; warranty: string; price: number; quantity: number; }[];
+  oil_change: { id: number; type: string; grade: string; price: number; quantity: number; }[];
+}
+
 export default function Dashboard() {
-  const [services, setServices] = useState({
+  const [services, setServices] = useState<ServicesData>({
     tyres: [],
     tubes: [],
     engineer: [],
@@ -27,7 +36,7 @@ export default function Dashboard() {
     const loadServices = async () => {
       if (!checkAuth()) return;
 
-      const data = {
+      const data: ServicesData = {
         tyres: JSON.parse(localStorage.getItem('tyres') || '[]'),
         tubes: JSON.parse(localStorage.getItem('tubes') || '[]'),
         engineer: JSON.parse(localStorage.getItem('engineer') || '[]'),
@@ -36,7 +45,7 @@ export default function Dashboard() {
       };
       
       if (data.tyres.length === 0) {
-        const defaultData = {
+        const defaultData: ServicesData = {
           tyres: [
             { id: 1, size: '165/70R14', brand: 'Michelin', type: 'All Season', price: 85000, quantity: 50 },
             { id: 2, size: '185/65R15', brand: 'Bridgestone', type: 'Touring', price: 95000, quantity: 30 },
@@ -55,8 +64,9 @@ export default function Dashboard() {
           ]
         };
         
+        // Fixed: Use type assertion for the keys
         Object.keys(defaultData).forEach(key => {
-          localStorage.setItem(key, JSON.stringify(defaultData[key]));
+          localStorage.setItem(key, JSON.stringify(defaultData[key as keyof ServicesData]));
         });
         
         setServices(defaultData);
@@ -173,9 +183,9 @@ export default function Dashboard() {
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
             <h3 className="text-white font-bold mb-2">In Stock</h3>
             <p className="text-3xl text-yellow-300 font-bold">
-              {services.tyres.reduce((sum, item: any) => sum + item.quantity, 0) +
-               services.batteries.reduce((sum, item: any) => sum + item.quantity, 0) +
-               services.oil_change.reduce((sum, item: any) => sum + item.quantity, 0)}
+              {services.tyres.reduce((sum, item) => sum + item.quantity, 0) +
+               services.batteries.reduce((sum, item) => sum + item.quantity, 0) +
+               services.oil_change.reduce((sum, item) => sum + item.quantity, 0)}
             </p>
             <p className="text-white/60 text-sm mt-2">Total items in stock</p>
           </div>
