@@ -3,15 +3,36 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+interface User {
+  id: number;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  phone: string;
+  role: 'admin' | 'customer';
+  status: 'active' | 'inactive';
+  createdAt: string;
+  isMainAdmin?: boolean;
+}
+
+interface FormErrors {
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  email?: string;
+  phone?: string;
+  [key: string]: string | undefined;
+}
+
 export default function Users() {
-  const [users, setUsers] = useState([]);
-  const [editingUser, setEditingUser] = useState(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const router = useRouter();
 
-  // Main admin ID that cannot be deleted
   const MAIN_ADMIN_ID = 1;
 
   useEffect(() => {
@@ -21,14 +42,12 @@ export default function Users() {
       return;
     }
 
-    // Load users from localStorage
     const loadUsers = () => {
       const storedUsers = localStorage.getItem('users');
       if (storedUsers) {
         setUsers(JSON.parse(storedUsers));
       } else {
-        // Initialize with default admin user
-        const defaultUsers = [
+        const defaultUsers: User[] = [
           {
             id: MAIN_ADMIN_ID,
             firstName: 'Admin',
@@ -51,45 +70,8 @@ export default function Users() {
     loadUsers();
   }, [router]);
 
-  // Validate user data for duplicates
-  const validateUser = (userData, isNewUser = false) => {
-    const newErrors = {};
-
-    // Check for duplicate username with null safety
-    if (userData.username) {
-      const duplicateUsername = users.find(user => 
-        user.username && 
-        user.username.toLowerCase() === userData.username.toLowerCase() &&
-        (isNewUser || user.id !== userData.id)
-      );
-      if (duplicateUsername) {
-        newErrors.username = 'Username already exists';
-      }
-    }
-
-    // Check for duplicate email with null safety
-    if (userData.email) {
-      const duplicateEmail = users.find(user => 
-        user.email && 
-        user.email.toLowerCase() === userData.email.toLowerCase() &&
-        (isNewUser || user.id !== userData.id)
-      );
-      if (duplicateEmail) {
-        newErrors.email = 'Email already exists';
-      }
-    }
-
-    // Check for duplicate phone (optional) with null safety
-    if (userData.phone) {
-      const duplicatePhone = users.find(user => 
-        user.phone && 
-        user.phone === userData.phone &&
-        (isNewUser || user.id !== userData.id)
-      );
-      if (duplicatePhone) {
-        newErrors.phone = 'Phone number already exists';
-      }
-    }
+  const validateUser = (userData: Partial<User>, isNewUser = false): FormErrors => {
+    const newErrors: FormErrors = {};
 
     // Required field validation
     if (!userData.firstName?.trim()) {
@@ -106,6 +88,39 @@ export default function Users() {
     }
     if (!userData.phone?.trim()) {
       newErrors.phone = 'Phone is required';
+    }
+
+    // Check for duplicate username
+    if (userData.username) {
+      const duplicateUsername = users.find(user => 
+        user.username.toLowerCase() === userData.username!.toLowerCase() &&
+        (isNewUser || user.id !== userData.id)
+      );
+      if (duplicateUsername) {
+        newErrors.username = 'Username already exists';
+      }
+    }
+
+    // Check for duplicate email
+    if (userData.email) {
+      const duplicateEmail = users.find(user => 
+        user.email.toLowerCase() === userData.email!.toLowerCase() &&
+        (isNewUser || user.id !== userData.id)
+      );
+      if (duplicateEmail) {
+        newErrors.email = 'Email already exists';
+      }
+    }
+
+    // Check for duplicate phone
+    if (userData.phone) {
+      const duplicatePhone = users.find(user => 
+        user.phone === userData.phone &&
+        (isNewUser || user.id !== userData.id)
+      );
+      if (duplicatePhone) {
+        newErrors.phone = 'Phone number already exists';
+      }
     }
 
     // Email format validation
@@ -126,53 +141,50 @@ export default function Users() {
     alert('Users saved successfully!');
   };
 
-  const handleEdit = (user: any) => {
+  const handleEdit = (user: User) => {
     setEditingUser({ ...user });
     setErrors({});
     setShowUserModal(true);
   };
 
   const handleUpdate = () => {
-    if (editingUser) {
-      // FIXED: Better logic to determine if it's a new user
-      const isNewUser = !users.some(user => user.id === editingUser.id);
-      const validationErrors = validateUser(editingUser, isNewUser);
-      
-      if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors);
-        return;
-      }
+    if (!editingUser) return;
 
-      let updatedUsers;
-      
-      if (isNewUser) {
-        // Add new user with proper ID generation
-        const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 2;
-        updatedUsers = [...users, { 
-          ...editingUser, 
-          id: newId,
-          createdAt: new Date().toISOString()
-        }];
-      } else {
-        // Update existing user
-        updatedUsers = users.map((user: any) => 
-          user.id === editingUser.id ? { ...editingUser } : user
-        );
-      }
-      
-      setUsers(updatedUsers);
-      localStorage.setItem('users', JSON.stringify(updatedUsers));
-      setEditingUser(null);
-      setShowUserModal(false);
-      setErrors({});
-      
-      alert(isNewUser ? 'User added successfully!' : 'User updated successfully!');
+    const isNewUser = !users.some(user => user.id === editingUser.id);
+    const validationErrors = validateUser(editingUser, isNewUser);
+    
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
     }
+
+    let updatedUsers: User[];
+    
+    if (isNewUser) {
+      const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 2;
+      updatedUsers = [...users, { 
+        ...editingUser, 
+        id: newId,
+        createdAt: new Date().toISOString()
+      }];
+    } else {
+      updatedUsers = users.map(user => 
+        user.id === editingUser.id ? { ...editingUser } : user
+      );
+    }
+    
+    setUsers(updatedUsers);
+    localStorage.setItem('users', JSON.stringify(updatedUsers));
+    setEditingUser(null);
+    setShowUserModal(false);
+    setErrors({});
+    
+    alert(isNewUser ? 'User added successfully!' : 'User updated successfully!');
   };
 
   const handleAddNew = () => {
-    const newUser = {
-      id: 0, // Use 0 as temporary ID for new users
+    const newUser: User = {
+      id: 0,
       firstName: '',
       lastName: '',
       username: '',
@@ -180,6 +192,7 @@ export default function Users() {
       phone: '',
       role: 'customer',
       status: 'active',
+      createdAt: ''
     };
     setEditingUser(newUser);
     setErrors({});
@@ -191,13 +204,11 @@ export default function Users() {
     
     if (!userToDelete) return;
 
-    // Prevent deletion of main admin
     if (id === MAIN_ADMIN_ID) {
       alert('Cannot delete the main administrator account.');
       return;
     }
 
-    // Special warning for admin users
     if (userToDelete.role === 'admin') {
       if (!confirm('WARNING: This is an administrator account. Are you sure you want to delete this admin user?')) {
         return;
@@ -208,7 +219,7 @@ export default function Users() {
       }
     }
 
-    const updatedUsers = users.filter((user: any) => user.id !== id);
+    const updatedUsers = users.filter(user => user.id !== id);
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
     
@@ -217,26 +228,29 @@ export default function Users() {
   };
 
   const handleStatusToggle = (id: number, currentStatus: string) => {
-    // Prevent deactivating main admin
     if (id === MAIN_ADMIN_ID) {
       alert('Cannot deactivate the main administrator account.');
       return;
     }
 
-    const updatedUsers = users.map((user: any) => 
-      user.id === id ? { ...user, status: currentStatus === 'active' ? 'inactive' : 'active' } : user
+    const updatedUsers = users.map(user => 
+      user.id === id ? { 
+        ...user, 
+        status: currentStatus === 'active' ? 'inactive' : 'active' 
+      } : user
     );
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
   };
 
-  const handleFieldChange = (field: string, value: string) => {
+  const handleFieldChange = (field: keyof User, value: string) => {
+    if (!editingUser) return;
+
     setEditingUser(prev => ({
-      ...prev,
+      ...prev!,
       [field]: value
     }));
 
-    // Clear error for this field when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -245,7 +259,13 @@ export default function Users() {
     }
   };
 
-  const renderField = (label: string, value: any, field: string, type = 'text', options = []) => (
+  const renderField = (
+    label: string, 
+    value: string, 
+    field: keyof User, 
+    type = 'text', 
+    options: {value: string, label: string}[] = []
+  ) => (
     <div>
       <label className="block text-sm font-medium text-gray-300 mb-1">{label}</label>
       {type === 'select' ? (
@@ -279,18 +299,15 @@ export default function Users() {
     </div>
   );
 
-  // Check if user can be deleted
-  const canDeleteUser = (user: any) => {
+  const canDeleteUser = (user: User) => {
     return user.id !== MAIN_ADMIN_ID;
   };
 
-  // Check if user status can be toggled
-  const canToggleStatus = (user: any) => {
+  const canToggleStatus = (user: User) => {
     return user.id !== MAIN_ADMIN_ID;
   };
 
-  // Safe username display
-  const getUsername = (user: any) => {
+  const getUsername = (user: User) => {
     return user.username || 'No username';
   };
 
@@ -317,13 +334,13 @@ export default function Users() {
           <div className="space-x-2">
             <button
               onClick={handleAddNew}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200"
             >
               Add New User
             </button>
             <button
               onClick={handleSave}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
             >
               Save All Changes
             </button>
@@ -339,19 +356,19 @@ export default function Users() {
           <div className="bg-gray-800 rounded-lg p-4">
             <h3 className="text-white font-bold">Active Users</h3>
             <p className="text-2xl text-green-400">
-              {users.filter((user: any) => user.status === 'active').length}
+              {users.filter(user => user.status === 'active').length}
             </p>
           </div>
           <div className="bg-gray-800 rounded-lg p-4">
             <h3 className="text-white font-bold">Admins</h3>
             <p className="text-2xl text-purple-400">
-              {users.filter((user: any) => user.role === 'admin').length}
+              {users.filter(user => user.role === 'admin').length}
             </p>
           </div>
           <div className="bg-gray-800 rounded-lg p-4">
             <h3 className="text-white font-bold">Customers</h3>
             <p className="text-2xl text-yellow-400">
-              {users.filter((user: any) => user.role === 'customer').length}
+              {users.filter(user => user.role === 'customer').length}
             </p>
           </div>
         </div>
@@ -371,7 +388,7 @@ export default function Users() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user: any) => (
+                {users.map((user) => (
                   <tr key={user.id} className="border-b border-gray-700 hover:bg-gray-750">
                     <td className="p-4">
                       <div>
@@ -385,8 +402,8 @@ export default function Users() {
                     </td>
                     <td className="p-4">
                       <div className="text-sm">
-                        <div>{user.email || 'No email'}</div>
-                        <div className="text-gray-400">{user.phone || 'No phone'}</div>
+                        <div>{user.email}</div>
+                        <div className="text-gray-400">{user.phone}</div>
                       </div>
                     </td>
                     <td className="p-4">
@@ -420,20 +437,19 @@ export default function Users() {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(user)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition duration-200"
                         >
                           Edit
                         </button>
-                        {canDeleteUser(user) && (
+                        {canDeleteUser(user) ? (
                           <button
                             onClick={() => handleDelete(user.id)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition duration-200"
                             title={user.role === 'admin' ? 'Delete admin user' : 'Delete user'}
                           >
                             Delete
                           </button>
-                        )}
-                        {!canDeleteUser(user) && (
+                        ) : (
                           <span 
                             className="bg-gray-600 text-gray-400 px-3 py-1 rounded text-sm cursor-not-allowed"
                             title="Main admin cannot be deleted"
@@ -452,8 +468,8 @@ export default function Users() {
 
         {/* User Modal */}
         {showUserModal && editingUser && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-2xl p-8 w-full max-w-md border border-gray-700">
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-md border border-gray-700">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-white">
                   {!users.some(user => user.id === editingUser.id) ? 'Add New User' : 'Edit User'}
@@ -490,13 +506,13 @@ export default function Users() {
               <div className="flex space-x-2 mt-6">
                 <button
                   onClick={handleUpdate}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex-1"
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex-1 transition duration-200"
                 >
                   {!users.some(user => user.id === editingUser.id) ? 'Add User' : 'Update User'}
                 </button>
                 <button
                   onClick={() => setShowUserModal(false)}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200"
                 >
                   Cancel
                 </button>
