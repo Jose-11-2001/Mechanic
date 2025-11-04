@@ -197,9 +197,15 @@ export default function About() {
                           alt={member.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            // Fallback if image doesn't exist
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
+                            // Fixed: Type assertion for TypeScript
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            
+                            // Fixed: Type assertion and null check for next sibling
+                            const nextSibling = target.nextSibling as HTMLElement;
+                            if (nextSibling) {
+                              nextSibling.style.display = 'flex';
+                            }
                           }}
                         />
                         <div className="w-full h-full bg-gray-600 rounded-full flex items-center justify-center text-2xl hidden">
