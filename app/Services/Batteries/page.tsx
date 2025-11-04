@@ -272,7 +272,7 @@ export default function Batteries() {
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 shadow-lg">
                     <Image 
-                      src="/Mpamba.jpg" 
+                      src="/Mpamba.png" 
                       alt="TNM Mpamba" 
                       width={24} 
                       height={24}

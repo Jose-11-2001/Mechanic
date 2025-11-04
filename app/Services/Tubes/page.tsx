@@ -302,7 +302,7 @@ export default function Tubes() {
                              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 shadow-lg">
                                {/* Custom TNM Mpamba Icon */}
                                <Image 
-                                 src="/Mpamba.jpg" 
+                                 src="/Mpamba.png" 
                                  alt="TNM Mpamba" 
                                  width={24} 
                                  height={24}
