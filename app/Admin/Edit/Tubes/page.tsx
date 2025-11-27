@@ -3,9 +3,19 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 
+// Define the interface for tube items
+interface TubeItem {
+  id: number;
+  size: string;
+  type: string;
+  valve: string;
+  price: number;
+  quantity: number;
+}
+
 export default function Tubes() {
-  const [items, setItems] = useState([]);
-  const [editingItem, setEditingItem] = useState(null);
+  const [items, setItems] = useState<TubeItem[]>([]);
+  const [editingItem, setEditingItem] = useState<TubeItem | null>(null);
   const router = useRouter();
   const params = useParams();
   const category = params.category as string;
@@ -20,7 +30,35 @@ export default function Tubes() {
     // Load items for this category
     const storedItems = localStorage.getItem(category);
     if (storedItems) {
-      setItems(JSON.parse(storedItems));
+      try {
+        const parsedItems = JSON.parse(storedItems);
+        setItems(Array.isArray(parsedItems) ? parsedItems : []);
+      } catch (error) {
+        console.error('Error parsing stored items:', error);
+        setItems([]);
+      }
+    } else {
+      // Initialize with default data if none exists
+      const defaultItems: TubeItem[] = [
+        {
+          id: 1,
+          size: '12-inch',
+          type: 'Bicycle Tube',
+          valve: 'Schrader',
+          price: 8000,
+          quantity: 100
+        },
+        {
+          id: 2,
+          size: '14-inch',
+          type: 'Bicycle Tube',
+          valve: 'Presta',
+          price: 8500,
+          quantity: 80
+        }
+      ];
+      setItems(defaultItems);
+      localStorage.setItem(category, JSON.stringify(defaultItems));
     }
   }, [category, router]);
 
@@ -29,13 +67,13 @@ export default function Tubes() {
     alert('Changes saved successfully!');
   };
 
-  const handleEdit = (item: any) => {
+  const handleEdit = (item: TubeItem) => {
     setEditingItem({ ...item });
   };
 
   const handleUpdate = () => {
     if (editingItem) {
-      const updatedItems = items.map((item: any) => 
+      const updatedItems = items.map((item) => 
         item.id === editingItem.id ? editingItem : item
       );
       setItems(updatedItems);
@@ -44,12 +82,13 @@ export default function Tubes() {
   };
 
   const handleAddNew = () => {
-    const newItem = {
-      id: Date.now(), // Simple ID generation
-      name: 'New Item',
+    const newItem: TubeItem = {
+      id: Date.now(),
+      size: 'New Size',
+      type: 'New Type',
+      valve: 'Schrader',
       price: 0,
       quantity: 0,
-      // Add other default fields based on category
     };
     setItems([...items, newItem]);
     setEditingItem(newItem);
@@ -57,7 +96,7 @@ export default function Tubes() {
 
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this item?')) {
-      const updatedItems = items.filter((item: any) => item.id !== id);
+      const updatedItems = items.filter((item) => item.id !== id);
       setItems(updatedItems);
     }
   };
@@ -68,16 +107,14 @@ export default function Tubes() {
       <input
         type={type}
         value={value}
-        onChange={(e) => setEditingItem({
+        onChange={(e) => setEditingItem(editingItem ? {
           ...editingItem,
           [field]: type === 'number' ? Number(e.target.value) : e.target.value
-        })}
+        } : null)}
         className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
       />
     </div>
   );
-
-  if (!items) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-900 p-8">
@@ -88,7 +125,7 @@ export default function Tubes() {
             <Link href="/Admin/Dashboard" className="text-blue-400 hover:text-blue-300 mb-2 inline-block">
               ← Back to Dashboard
             </Link>
-          <h1 className="text-3xl font-bold text-white">Edit Tubes</h1>
+            <h1 className="text-3xl font-bold text-white">Edit Tubes</h1>
           </div>
           <div className="space-x-2">
             <button
@@ -114,21 +151,9 @@ export default function Tubes() {
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {category === 'tyres' && (
-                <>
-                  {renderField('Size', editingItem.size || '', 'size')}
-                  {renderField('Brand', editingItem.brand || '', 'brand')}
-                  {renderField('Type', editingItem.type || '', 'type')}
-                </>
-              )}
-              
-              {category === 'engineer' && (
-                <>
-                  {renderField('Service Name', editingItem.name || '', 'name')}
-                  {renderField('Description', editingItem.description || '', 'description')}
-                </>
-              )}
-
+              {renderField('Size', editingItem.size || '', 'size')}
+              {renderField('Type', editingItem.type || '', 'type')}
+              {renderField('Valve', editingItem.valve || '', 'valve')}
               {renderField('Price', editingItem.price || 0, 'price', 'number')}
               {renderField('Quantity', editingItem.quantity || 0, 'quantity', 'number')}
             </div>
@@ -152,36 +177,40 @@ export default function Tubes() {
 
         {/* Items List */}
         <div className="grid grid-cols-1 gap-4">
-          {items.map((item: any) => (
-            <div key={item.id} className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
-              <div className="flex justify-between items-center">
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-white">
-                    {item.name || item.size || item.type}
-                  </h3>
-                  <p className="text-gray-300">
-                    {item.brand && `Brand: ${item.brand} • `}
-                    {item.description && `Desc: ${item.description} • `}
-                    Price: K{item.price} • Qty: {item.quantity}
-                  </p>
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                  >
-                    Delete
-                  </button>
+          {items.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-400">No tubes found. Click "Add New" to create one.</p>
+            </div>
+          ) : (
+            items.map((item) => (
+              <div key={item.id} className="bg-gray-800 rounded-2xl p-4 border border-gray-700">
+                <div className="flex justify-between items-center">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-white">
+                      {item.size} - {item.type}
+                    </h3>
+                    <p className="text-gray-300">
+                      Valve: {item.valve} • Price: K{item.price} • Qty: {item.quantity}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEdit(item)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

@@ -45,7 +45,13 @@ export default function Users() {
     const loadUsers = () => {
       const storedUsers = localStorage.getItem('users');
       if (storedUsers) {
-        setUsers(JSON.parse(storedUsers));
+        try {
+          const parsedUsers = JSON.parse(storedUsers);
+          setUsers(parsedUsers);
+        } catch (error) {
+          console.error('Error parsing stored users:', error);
+          setUsers([]);
+        }
       } else {
         const defaultUsers: User[] = [
           {
@@ -227,18 +233,23 @@ export default function Users() {
     alert(`${userType} deleted successfully!`);
   };
 
-  const handleStatusToggle = (id: number, currentStatus: string) => {
+  const handleStatusToggle = (id: number, currentStatus: 'active' | 'inactive') => {
     if (id === MAIN_ADMIN_ID) {
       alert('Cannot deactivate the main administrator account.');
       return;
     }
 
-    const updatedUsers = users.map(user => 
-      user.id === id ? { 
-        ...user, 
-        status: currentStatus === 'active' ? 'inactive' : 'active' 
-      } : user
-    );
+    const updatedUsers = users.map(user => {
+      if (user.id === id) {
+        const newStatus: 'active' | 'inactive' = currentStatus === 'active' ? 'inactive' : 'active';
+        return {
+          ...user,
+          status: newStatus
+        };
+      }
+      return user;
+    });
+    
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
   };
@@ -246,10 +257,22 @@ export default function Users() {
   const handleFieldChange = (field: keyof User, value: string) => {
     if (!editingUser) return;
 
-    setEditingUser(prev => ({
-      ...prev!,
-      [field]: value
-    }));
+    if (field === 'status') {
+      setEditingUser(prev => ({
+        ...prev!,
+        [field]: value as 'active' | 'inactive'
+      }));
+    } else if (field === 'role') {
+      setEditingUser(prev => ({
+        ...prev!,
+        [field]: value as 'admin' | 'customer'
+      }));
+    } else {
+      setEditingUser(prev => ({
+        ...prev!,
+        [field]: value
+      }));
+    }
 
     if (errors[field]) {
       setErrors(prev => ({

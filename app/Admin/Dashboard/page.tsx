@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -30,9 +30,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     const checkAuth = () => {
-      const isAuthenticated = localStorage.getItem('adminAuthenticated');
-      if (!isAuthenticated) {
-        router.push('/Admin/login');
+      const isAuthenticated = localStorage.getItem('authenticated');
+      const userType = localStorage.getItem('userType');
+      
+      if (!isAuthenticated || userType !== 'admin') {
+        router.push('/Login');
         return false;
       }
       return true;
@@ -118,8 +120,12 @@ export default function Dashboard() {
   }, [router]);
 
   const handleLogout = () => {
-    localStorage.removeItem('adminAuthenticated');
-    router.push('/Admin/login');
+    localStorage.removeItem('authenticated');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
+    router.push('/Login');
   };
 
   const handleAddUser = () => {
@@ -201,7 +207,7 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <Link href="/Admin/login" className="text-blue-300 hover:text-blue-200 mb-2 inline-block transition duration-200">
+            <Link href="/Login" className="text-blue-300 hover:text-blue-200 mb-2 inline-block transition duration-200">
               ← Back to Login
             </Link>
             <h1 className="text-4xl font-bold text-white">Admin Dashboard</h1>

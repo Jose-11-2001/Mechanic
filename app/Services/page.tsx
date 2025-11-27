@@ -1,7 +1,27 @@
-"use client";
+'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function services() {
+export default function Services() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const isAuthenticated = localStorage.getItem('authenticated');
+    const userType = localStorage.getItem('userType');
+    
+    if (!isAuthenticated) {
+      router.push('/Login');
+      return;
+    }
+
+    // If admin tries to access services page, redirect to admin dashboard
+    if (userType === 'admin') {
+      router.push('/Admin/Dashboard');
+    }
+  }, [router]);
+
   const items = [
     { 
       id: 1, 
@@ -47,6 +67,15 @@ export default function services() {
     },
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem('authenticated');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
+    router.push('/Login');
+  };
+
   return (
     <div 
       className="min-h-screen bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-4 py-8"
@@ -55,21 +84,30 @@ export default function services() {
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black bg-opacity-70"></div>
       
-      {/* Back Arrow */}
-      <Link href="/Login" className="absolute top-6 left-6 z-20">
-        <button className="text-white hover:text-gray-300 transition duration-200">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-      </Link>
-
-      {/* Content */}
+      {/* Header with Logout */}
       <div className="relative z-10 w-full max-w-4xl">
-        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <Link href="/Login">
+            <button className="text-white hover:text-gray-300 transition duration-200">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          </Link>
+          
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg transition duration-200"
+          >
+            Logout
+          </button>
+        </div>
+
+        {/* Content */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">BODE AUTOMOTIVES</h1>
           <p className="text-xl text-gray-300">Our Products & Services</p>
+          <p className="text-sm text-green-400 mt-2">Welcome, User!</p>
         </div>
 
         {/* Items Grid */}

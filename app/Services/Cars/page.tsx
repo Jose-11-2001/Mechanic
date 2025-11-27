@@ -2,8 +2,16 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+// Define the Service interface
+interface Service {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+}
+
 export default function Cars() {
-  const [services, setServices] = useState([]);
+  const [services, setServices] = useState<Service[]>([]); // Add type annotation here
 
   useEffect(() => {
     // Load car services from localStorage
@@ -52,7 +60,7 @@ export default function Cars() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl relative z-10">
-        {services.map((service: any) => (
+        {services.map((service: Service) => ( // Use Service type here
           <div key={service.id} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:border-blue-400/50 transition duration-300 hover:transform hover:scale-105">
             <div className="text-center mb-4">
               <div className="text-3xl mb-2">🚗</div>

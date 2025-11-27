@@ -3,9 +3,19 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+// Define the Battery type
+interface Battery {
+  id: string;
+  type: string;
+  capacity: string;
+  warranty: string;
+  price: number;
+  quantity: number;
+}
+
 export default function Batteries() {
-  const [batteries, setBatteries] = useState([]);
-  const [selectedBattery, setSelectedBattery] = useState(null);
+  const [batteries, setBatteries] = useState<Battery[]>([]); // Add type annotation here
+  const [selectedBattery, setSelectedBattery] = useState<Battery | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -47,7 +57,7 @@ export default function Batteries() {
     }
   };
 
-  const getDefaultBatteries = () => {
+  const getDefaultBatteries = (): Battery[] => { // Add return type here
     return [
       { id: '1', type: 'Lead Acid Battery', capacity: '45Ah', warranty: '1 Year', price: 150000, quantity: 20 },
       { id: '2', type: 'Maintenance Free', capacity: '60Ah', warranty: '2 Years', price: 200000, quantity: 15 },
@@ -58,7 +68,7 @@ export default function Batteries() {
     ];
   };
 
-  const handleBuyNow = (battery: any) => {
+  const handleBuyNow = (battery: Battery) => { // Use Battery type here
     if (battery.quantity < 1) {
       alert('Sorry, this battery is out of stock');
       return;
@@ -96,7 +106,7 @@ export default function Batteries() {
     }
   };
 
-  const processPayment = (paymentMethod: string, totalAmount: number, battery: any, orderId: string) => {
+  const processPayment = (paymentMethod: string, totalAmount: number, battery: Battery, orderId: string) => {
     // Simulate payment processing
     alert(`Redirecting to ${paymentMethod} payment...\n\nProduct: ${battery.type}\nQuantity: ${quantity}\nTotal: ${formatPrice(totalAmount)}\nOrder ID: ${orderId}`);
     
@@ -171,7 +181,7 @@ export default function Batteries() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl relative z-10">
-        {batteries.map((battery: any) => (
+        {batteries.map((battery: Battery) => ( // Use Battery type here
           <div 
             key={battery.id} 
             className={`bg-white/10 backdrop-blur-md rounded-2xl p-6 border transition duration-300 transform hover:scale-105 ${

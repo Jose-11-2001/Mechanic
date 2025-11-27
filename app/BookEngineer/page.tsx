@@ -1,253 +1,311 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useState } from 'react';
+import Link from 'next/link';
 
-export default function BookEngineer() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    email: "",
-    location: "",
-    datetime: "",
-    serviceType: "",
-    servicePrice: "",
-    vehicleDetails: "",
-    problemDescription: "",
+export default function Login() {
+  const [formData, setFormData] = useState({
+    loginId: '', // This can be username or email
+    password: '',
+    userType: 'user' // 'user' or 'admin'
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  
+  const [errors, setErrors] = useState({
+    loginId: '',
+    password: '',
+    userType: ''
+  });
+  
+  const [touched, setTouched] = useState({
+    loginId: false,
+    password: false,
+    userType: false
+  });
 
-  // Get service data from URL parameters
-  useEffect(() => {
-    const service = searchParams.get('service');
-    const price = searchParams.get('price');
-    const description = searchParams.get('description');
+  // Validation rules
+  const validateField = (name: string, value: string) => {
+    switch (name) {
+      case 'loginId':
+        if (!value) return 'Username or Email is required';
+        if (value.length < 3) return 'Must be at least 3 characters';
+        if (value.length > 100) return 'Must be less than 100 characters';
+        
+        // If it contains @, validate as email, otherwise as username
+        if (value.includes('@')) {
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address';
+        } else {
+          if (!/^[a-zA-Z0-9_]+$/.test(value)) return 'Username can only contain letters, numbers, and underscores';
+        }
+        return '';
+      
+      case 'password':
+        if (!value) return 'Password is required';
+        if (value.length < 6) return 'Password must be at least 6 characters';
+        if (value.length > 50) return 'Password must be less than 50 characters';
+        return '';
+      
+      case 'userType':
+        if (!value) return 'Please select user type';
+        return '';
+      
+      default:
+        return '';
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
     
-    if (service) {
-      setForm(prev => ({
-        ...prev,
-        serviceType: service,
-        servicePrice: price || ""
+    // Validate field in real-time if it's been touched
+    if (touched[name as keyof typeof touched]) {
+      setErrors(prev => ({ 
+        ...prev, 
+        [name]: validateField(name, value) 
       }));
     }
-  }, [searchParams]);
+  };
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" });
-  }
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+    setErrors(prev => ({ 
+      ...prev, 
+      [name]: validateField(name, value) 
+    }));
+  };
 
-  function validate() {
-    const err: Record<string, string> = {};
-    if (!form.firstName.trim()) err.firstName = "First name is required";
-    if (!form.lastName.trim()) err.lastName = "Last name is required";
-    if (!form.phone.trim()) err.phone = "Phone number is required";
-    if (!form.location.trim()) err.location = "Location is required";
-    if (!form.datetime.trim()) err.datetime = "Date & time is required";
-    if (!form.vehicleDetails.trim()) err.vehicleDetails = "Vehicle details are required";
-    if (!form.problemDescription.trim()) err.problemDescription = "Problem description is required";
-    return err;
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const v = validate();
-    if (Object.keys(v).length) {
-      setErrors(v);
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      // Example: send to an API route (create /api/engineer-bookings to accept this)
-      // await fetch('/api/engineer-bookings', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(form),
-      // });
-
-      // For now show success message and clear (or navigate)
-      setSuccess(true);
-      setForm({ 
-        firstName: "", 
-        lastName: "", 
-        phone: "", 
-        email: "", 
-        location: "", 
-        datetime: "",
-        serviceType: "",
-        servicePrice: "",
-        vehicleDetails: "",
-        problemDescription: ""
+    
+    // Mark all fields as touched and validate
+    const newTouched = { 
+      loginId: true, 
+      password: true,
+      userType: true
+    };
+    const newErrors = {
+      loginId: validateField('loginId', formData.loginId),
+      password: validateField('password', formData.password),
+      userType: validateField('userType', formData.userType)
+    };
+    
+    setTouched(newTouched);
+    setErrors(newErrors);
+    
+    // Check if form is valid
+    const isValid = !newErrors.loginId && !newErrors.password && !newErrors.userType;
+    
+    if (isValid) {
+      // Determine if loginId is email or username
+      const isEmail = formData.loginId.includes('@');
+      const loginData = {
+        loginId: formData.loginId,
+        password: formData.password,
+        userType: formData.userType,
+        isEmail: isEmail
+      };
+      
+      console.log('Login form is valid, submitting:', loginData);
+      
+      // Here you would typically send the data to your backend API
+      // The backend should check the appropriate table based on userType
+      
+      // Simulate different redirects based on user type
+      if (formData.userType === 'admin') {
+        alert('Admin login successful! Redirecting to admin dashboard...');
+        // Redirect to admin dashboard
+        // window.location.href = '/admin/dashboard';
+      } else {
+        alert('User login successful! Redirecting to services...');
+        // Redirect to user services page
+        // window.location.href = '/services';
+      }
+      
+      // Reset form after successful submission
+      setFormData({
+        loginId: '',
+        password: '',
+        userType: 'user'
       });
-      // router.push('/book/engineer/confirmation') // optionally navigate to a confirmation page
-    } catch (err) {
-      setErrors({ form: "Failed to submit. Try again." });
-    } finally {
-      setSubmitting(false);
+      setTouched({
+        loginId: false,
+        password: false,
+        userType: false
+      });
+      
+    } else {
+      console.log('Form has errors');
     }
-  }
+  };
+
+  // Check if form has any errors
+  const hasErrors = Object.values(errors).some(error => error !== '');
+  // Check if all required fields are filled
+  const allFieldsFilled = formData.loginId && formData.password && formData.userType;
 
   return (
-    <main 
-      className="min-h-screen flex items-center justify-center py-12 px-4 relative"
-      style={{
-        backgroundImage: "url('/mechanic4.jpg')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
+    <div 
+      className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center px-4"
+      style={{ backgroundImage: 'url("/Mechanic4.jpg")' }}
     >
-      {/* Dark overlay for better readability */}
-      <div className="absolute inset-0 bg-black/50"></div>
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black bg-opacity-70"></div>
       
-      {/* Back Arrow */}
-      <Link href="/Services/Engineers" className="absolute top-6 left-6 z-20">
-        <button className="text-white hover:text-gray-300 transition duration-200 bg-black/30 rounded-full p-2">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-      </Link>
+      {/* Login Card */}
+      <div className="relative z-10 bg-gray-900 bg-opacity-90 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-700">
+        {/* Back Arrow */}
+        <Link href="/">
+          <button className="absolute top-4 left-4 text-gray-300 hover:text-white transition duration-200">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        </Link>
 
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-2xl bg-white/10 backdrop-blur-md p-8 rounded-lg shadow-2xl border border-white/20 relative z-10"
-      >
-        <h2 className="text-2xl font-bold text-white mb-4">Book Engineering Service</h2>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-white">BODE AUTOMOTIVES</h1>
+          <p className="text-gray-300 mt-2">Welcome back</p>
+          <p className="text-sm text-green-400 mt-1">Login as user or admin</p>
+        </div>
 
-        {/* Display selected service info */}
-        {form.serviceType && (
-          <div className="mb-6 p-4 bg-blue-900/40 rounded-lg border border-blue-400/30">
-            <h3 className="text-lg font-semibold text-white">Selected Service</h3>
-            <p className="text-white/90">{form.serviceType}</p>
-            {form.servicePrice && (
-              <p className="text-green-300 font-bold">K{form.servicePrice}</p>
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+          {/* User Type Selection */}
+          <div>
+            <label htmlFor="userType" className="block text-sm font-medium text-gray-300 mb-2">
+              Login As *
+            </label>
+            <select
+              id="userType"
+              name="userType"
+              value={formData.userType}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white transition duration-200 ${
+                errors.userType && touched.userType 
+                  ? 'border-red-500' 
+                  : 'border-gray-600'
+              }`}
+            >
+              <option value="user">User</option>
+              <option value="admin">Administrator</option>
+            </select>
+            {errors.userType && touched.userType && (
+              <p className="text-red-400 text-sm mt-1 flex items-center">
+                <span className="mr-1">⚠</span>
+                {errors.userType}
+              </p>
             )}
           </div>
-        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <label className="flex flex-col text-white/90">
-            <span className="mb-1">First name *</span>
+          {/* Username/Email Input */}
+          <div>
+            <label htmlFor="loginId" className="block text-sm font-medium text-gray-300 mb-2">
+              {formData.userType === 'admin' ? 'Admin ID or Email *' : 'Username or Email *'}
+            </label>
             <input
-              name="firstName"
-              value={form.firstName}
+              type="text"
+              id="loginId"
+              name="loginId"
+              value={formData.loginId}
               onChange={handleChange}
-              className="p-2 rounded bg-white/20 text-white border border-white/30 placeholder-white/60"
-              placeholder="Joseph"
+              onBlur={handleBlur}
+              placeholder={formData.userType === 'admin' ? 'Enter admin ID or email' : 'Enter your username or email'}
+              className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200 ${
+                errors.loginId && touched.loginId 
+                  ? 'border-red-500' 
+                  : 'border-gray-600'
+              }`}
             />
-            {errors.firstName && <span className="text-xs text-red-300 mt-1">{errors.firstName}</span>}
-          </label>
+            {errors.loginId && touched.loginId && (
+              <p className="text-red-400 text-sm mt-1 flex items-center">
+                <span className="mr-1">⚠</span>
+                {errors.loginId}
+              </p>
+            )}
+            <p className="text-xs text-gray-400 mt-1">
+              {formData.userType === 'admin' 
+                ? 'Enter your administrator credentials' 
+                : 'Enter the username or email you used to create your account'}
+            </p>
+          </div>
 
-          <label className="flex flex-col text-white/90">
-            <span className="mb-1">Last name *</span>
+          {/* Password Input */}
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+              Password *
+            </label>
             <input
-              name="lastName"
-              value={form.lastName}
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
               onChange={handleChange}
-              className="p-2 rounded bg-white/20 text-white border border-white/30 placeholder-white/60"
-              placeholder="Mbukwa"
+              onBlur={handleBlur}
+              placeholder="Enter your password"
+              className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200 ${
+                errors.password && touched.password 
+                  ? 'border-red-500' 
+                  : 'border-gray-600'
+              }`}
             />
-            {errors.lastName && <span className="text-xs text-red-300 mt-1">{errors.lastName}</span>}
-          </label>
+            {errors.password && touched.password && (
+              <p className="text-red-400 text-sm mt-1 flex items-center">
+                <span className="mr-1">⚠</span>
+                {errors.password}
+              </p>
+            )}
+          </div>
 
-          <label className="flex flex-col text-white/90">
-            <span className="mb-1">Phone *</span>
-            <input
-              name="phone"
-              type="tel"
-              value={form.phone}
-              onChange={handleChange}
-              className="p-2 rounded bg-white/20 text-white border border-white/30 placeholder-white/60"
-              placeholder="+265886663959"
-            />
-            {errors.phone && <span className="text-xs text-red-300 mt-1">{errors.phone}</span>}
-          </label>
+          {/* Remember Me & Forgot Password */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="remember"
+                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-600 rounded bg-gray-800"
+              />
+              <label htmlFor="remember" className="ml-2 block text-sm text-gray-300">
+                Remember me
+              </label>
+            </div>
+            
+            <Link href="/forgot-password" className="text-sm text-green-400 hover:text-green-300">
+              Forgot password?
+            </Link>
+          </div>
 
-          <label className="flex flex-col text-white/90">
-            <span className="mb-1">Email (optional)</span>
-            <input
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              className="p-2 rounded bg-white/20 text-white border border-white/30 placeholder-white/60"
-              placeholder="bodeautomotive@gmail.com"
-            />
-          </label>
-
-          <label className="flex flex-col text-white/90 md:col-span-2">
-            <span className="mb-1">Vehicle Details *</span>
-            <input
-              name="vehicleDetails"
-              value={form.vehicleDetails}
-              onChange={handleChange}
-              className="p-2 rounded bg-white/20 text-white border border-white/30 placeholder-white/60"
-              placeholder="e.g., Toyota Corolla 2018, Registration ABC123"
-            />
-            {errors.vehicleDetails && <span className="text-xs text-red-300 mt-1">{errors.vehicleDetails}</span>}
-          </label>
-
-          <label className="flex flex-col text-white/90 md:col-span-2">
-            <span className="mb-1">Problem Description *</span>
-            <textarea
-              name="problemDescription"
-              value={form.problemDescription}
-              onChange={handleChange}
-              rows={3}
-              className="p-2 rounded bg-white/20 text-white border border-white/30 placeholder-white/60 resize-none"
-              placeholder="Please describe the issue with your vehicle..."
-            />
-            {errors.problemDescription && <span className="text-xs text-red-300 mt-1">{errors.problemDescription}</span>}
-          </label>
-
-          <label className="flex flex-col text-white/90 md:col-span-2">
-            <span className="mb-1">Location *</span>
-            <input
-              name="location"
-              value={form.location}
-              onChange={handleChange}
-              className="p-2 rounded bg-white/20 text-white border border-white/30 placeholder-white/60"
-              placeholder="Your address or preferred service location"
-            />
-            {errors.location && <span className="text-xs text-red-300 mt-1">{errors.location}</span>}
-          </label>
-
-          <label className="flex flex-col text-white/90 md:col-span-2">
-            <span className="mb-1">Preferred Date & Time *</span>
-            <input
-              name="datetime"
-              type="datetime-local"
-              value={form.datetime}
-              onChange={handleChange}
-              className="p-2 rounded bg-white/20 text-white border border-white/30"
-            />
-            {errors.datetime && <span className="text-xs text-red-300 mt-1">{errors.datetime}</span>}
-          </label>
-        </div>
-
-        {errors.form && <p className="text-red-300 mt-3">{errors.form}</p>}
-
-        <div className="mt-6 flex items-center justify-between">
+          {/* Login Button */}
           <button
             type="submit"
-            disabled={submitting}
-            className="bg-green-600 hover:bg-green-500 text-white font-semibold px-6 py-2 rounded shadow-lg transition duration-200 transform hover:scale-105"
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            disabled={hasErrors || !allFieldsFilled}
           >
-            {submitting ? "Submitting..." : "Confirm Booking"}
+            {formData.userType === 'admin' ? 'Login as Admin' : 'Login as User'}
           </button>
+        </form>
 
-          {success && <span className="text-green-300 font-semibold">Booking request sent successfully!</span>}
-        </div>
-      </form>
-    </main>
+        {/* Conditional redirect based on user type */}
+        {formData.userType === 'user' && (
+          <div className="text-center mt-6">
+            <p className="text-sm text-gray-400">
+              Don't have an account?{' '}
+              <Link href="/SignUp" className="text-green-400 hover:text-green-300 font-semibold">
+                Sign up here
+              </Link>
+            </p>
+          </div>
+        )}
+        
+        {formData.userType === 'admin' && (
+          <div className="text-center mt-6">
+            <p className="text-sm text-gray-400">
+              Admin access requires proper authorization
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
