@@ -13,15 +13,22 @@ export default function Login() {
 
     // Simulate a short delay for "processing"
     setTimeout(() => {
-      console.log('✅ Login successful! Redirecting to dashboard...');
+      console.log('✅ Login successful! Redirecting to services...');
       
       // Store a simple flag to indicate user is logged in
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('loginTime', new Date().toISOString());
       
-      // Redirect to dashboard
-      router.push('/Dashboard');
+      // Redirect to services page
+      router.push('/Services');
     }, 500);
+  };
+
+  const continueAsGuest = () => {
+    console.log('👤 Continuing as guest...');
+    localStorage.setItem('isGuest', 'true');
+    localStorage.setItem('loginTime', new Date().toISOString());
+    router.push('/Services');
   };
 
   return (
@@ -35,7 +42,6 @@ export default function Login() {
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white">BODE AUTOMOTIVES</h1>
           <p className="text-gray-300 mt-2">Welcome Back</p>
-
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -46,7 +52,7 @@ export default function Login() {
             </label>
             <input
               type="email"
-              placeholder="Enter email "
+              placeholder="Enter email"
               className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200"
               disabled={isLoading}
             />
@@ -60,7 +66,7 @@ export default function Login() {
             <div className="relative">
               <input
                 type="password"
-                placeholder="Enter password "
+                placeholder="Enter password"
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200"
                 disabled={isLoading}
               />
@@ -80,10 +86,6 @@ export default function Login() {
             <Link 
               href="/ForgetPassword" 
               className="text-sm text-green-400 hover:text-green-300 transition duration-200"
-              onClick={(e) => {
-                e.preventDefault();
-                alert('Password reset not implemented yet');
-              }}
             >
               Forgot password?
             </Link>
@@ -97,12 +99,37 @@ export default function Login() {
             {isLoading ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Redirecting...</span>
+                <span>Redirecting to Services...</span>
               </>
             ) : (
               <span>Login</span>
             )}
           </button>
+
+          {/* Divider */}
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-600"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-gray-900 text-gray-400">OR</span>
+            </div>
+          </div>
+
+          {/* Direct Services Link */}
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={continueAsGuest}
+              disabled={isLoading}
+              className="w-full bg-transparent border border-gray-600 hover:border-gray-500 hover:bg-gray-800/50 text-gray-300 font-medium py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Continue as Guest
+            </button>
+            <p className="text-xs text-gray-500 mt-2">
+              Browse services without creating an account
+            </p>
+          </div>
         </form>
 
         <div className="mt-6 pt-6 border-t border-gray-700">
@@ -114,6 +141,14 @@ export default function Login() {
                 className="text-green-400 hover:text-green-300 font-semibold transition duration-200"
               >
                 Sign up here
+              </Link>
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              <Link 
+                href="/Services" 
+                className="text-green-400 hover:text-green-300"
+              >
+                Browse all services →
               </Link>
             </p>
           </div>

@@ -3,273 +3,302 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-const API_BASE_URL = 'http://localhost:3001';
-
-export default function Signup() {
+export default function SignUp() {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    fullName: '',
     email: '',
-    password: ''
+    phone: '',
+    password: '',
+    confirmPassword: '',
+    userType: 'customer' // customer, mechanic, admin
   });
-  
-  const [errors, setErrors] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: ''
-  });
-  
-  const [touched, setTouched] = useState({
-    firstName: false,
-    lastName: false,
-    email: false,
-    password: false
-  });
-
   const [isLoading, setIsLoading] = useState(false);
-  const [registrationError, setRegistrationError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setRegistrationError('');
-    
-    if (touched[name as keyof typeof touched]) {
-      setErrors(prev => ({ 
-        ...prev, 
-        [name]: validateField(name, value) 
-      }));
-    }
-  };
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setTouched(prev => ({ ...prev, [name]: true }));
-    setErrors(prev => ({ 
-      ...prev, 
-      [name]: validateField(name, value) 
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setRegistrationError('');
-    setRegistrationSuccess(false);
-    
-    // Mark all fields as touched and validate
-    const newTouched = { 
-      firstName: true, 
-      lastName: true, 
-      email: true,
-      password: true 
-    };
-    const newErrors = {
-      firstName: validateField('firstName', formData.firstName),
-      lastName: validateField('lastName', formData.lastName),
-      email: validateField('email', formData.email),
-      password: validateField('password', formData.password)
-    };
-    
-    setTouched(newTouched);
-    setErrors(newErrors);
-    
-    const isValid = !newErrors.firstName && !newErrors.lastName && 
-                   !newErrors.email && !newErrors.password;
-    
-    if (isValid) {
-      try {
-        console.log('🚀 Starting registration process...');
-        
-        // Prepare data for backend - no normalization
-        const submitData = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email, // No normalization
-          password: formData.password
-        };
+    setErrors({});
 
-        console.log('📤 Sending registration data:', {
-          ...submitData,
-          password: '*'.repeat(submitData.password.length)
-        });
-        
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(submitData),
-        });
+    // Basic validation
+    const newErrors: Record<string, string> = {};
 
-        const responseText = await response.text();
-        let responseData;
-        try {
-          responseData = responseText ? JSON.parse(responseText) : {};
-        } catch (parseError) {
-          console.error('❌ JSON Parse error:', parseError);
-          throw new Error('Invalid response from server');
-        }
-
-        if (!response.ok) {
-          throw new Error(responseData.message || `Registration failed: ${response.status}`);
-        }
-
-        console.log('✅ Registration successful:', responseData);
-        
-        // Show success message
-        setRegistrationSuccess(true);
-        setRegistrationError('');
-
-        // Auto-login after successful registration
-        try {
-          console.log('🔄 Attempting auto-login...');
-          
-          const loginResult = await fetch(`${API_BASE_URL}/auth/login`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: submitData.email, // No normalization
-              password: submitData.password
-            }),
-          });
-
-          if (!loginResult.ok) {
-            throw new Error('Auto-login failed');
-          }
-
-          const loginData = await loginResult.json();
-          
-          console.log('✅ Auto-login successful:', loginData);
-          
-          // Store authentication data
-          localStorage.setItem('token', loginData.access_token);
-          localStorage.setItem('user', JSON.stringify(loginData.user));
-          localStorage.setItem('loginTime', new Date().toISOString());
-          
-          console.log('📍 Redirecting to dashboard...');
-          setTimeout(() => {
-            router.push('/Dashboard');
-          }, 2000);
-          
-        } catch (loginError: any) {
-          console.log('⚠️ Auto-login failed, redirecting to login page:', loginError);
-          setRegistrationError('Account created successfully! Please login with your email.');
-          setTimeout(() => {
-            router.push('/Login');
-          }, 3000);
-        }
-        
-      } catch (error: any) {
-        console.error('❌ Registration error:', error);
-        
-        if (error.message.includes('Network error') || error.message.includes('Failed to fetch')) {
-          setRegistrationError('Cannot connect to server. Please check if the backend is running on port 3001.');
-        } else if (error.message.includes('409')) {
-          setRegistrationError('Email already exists. Please use a different email.');
-        } else if (error.message.includes('400')) {
-          setRegistrationError('Invalid data provided. Please check your information.');
-        } else {
-          setRegistrationError(error.message || 'Registration failed. Please try again.');
-        }
-      }
-    } else {
-      setRegistrationError('Please fix the form errors above');
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
     }
-    
-    setIsLoading(false);
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsLoading(false);
+      return;
+    }
+
+    // Simulate API call
+    setTimeout(() => {
+      console.log('✅ Account created successfully!', formData);
+      
+      // Store user data (in a real app, this would come from backend)
+      const userData = {
+        id: Date.now(),
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        type: formData.userType,
+        createdAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('isLoggedIn', 'true');
+      
+      // Show success message
+      alert(`Welcome ${formData.fullName}! Your account has been created.`);
+      
+      // Redirect to services page
+      router.push('/Services');
+    }, 1000);
   };
 
-  // Validation function
-  const validateField = (name: string, value: string) => {
-    switch (name) {
-      case 'firstName':
-        if (!value) return 'First name is required';
-        if (value.length < 2) return 'First name must be at least 2 characters';
-        return '';
-      
-      case 'lastName':
-        if (!value) return 'Last name is required';
-        if (value.length < 2) return 'Last name must be at least 2 characters';
-        return '';
-      
-      case 'email':
-        if (!value) return 'Email is required';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address';
-        return '';
-      
-      case 'password':
-        if (!value) return 'Password is required';
-        if (value.length < 6) return 'Password must be at least 6 characters';
-        return '';
-      
-      default:
-        return '';
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
   };
-
-  // Check if all required fields are filled
-  const requiredFieldsFilled = formData.firstName && formData.lastName && formData.email && formData.password;
 
   return (
-    <div 
-      className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center px-4"
-      style={{ backgroundImage: 'url("/Mechanic4.jpg")' }}
-    >
+    <div className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center px-4 py-8"
+      style={{ backgroundImage: 'url("/Mechanic4.jpg")' }}>
+      
       <div className="absolute inset-0 bg-black bg-opacity-70"></div>
       
       <div className="relative z-10 bg-gray-900 bg-opacity-90 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-700">
-        {/* Back Arrow */}
-        <Link href="/Login">
-          <button className="absolute top-4 left-4 text-gray-300 hover:text-white transition duration-200">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-        </Link>
-
-        {/* Header */}
+        
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white">BODE AUTOMOTIVES</h1>
-          <p className="text-gray-300 mt-2">Create your account</p>
-          <p className="text-sm text-green-400 mt-1">All fields are required</p>
+          <h1 className="text-2xl font-bold text-white">Create Account</h1>
+          <p className="text-gray-300 mt-2">Join BODE AUTOMOTIVES today</p>
         </div>
 
-        {/* Success Message */}
-        {registrationSuccess && (
-          <div className="mb-4 bg-green-900/50 border border-green-500 rounded-lg p-3 animate-pulse">
-            <div className="flex items-center space-x-2">
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-green-400 text-sm">
-                Account created successfully! Redirecting...
-              </p>
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Full Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Full Name *
+            </label>
+            <input
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              placeholder="Enter your full name"
+              className={`w-full px-4 py-3 bg-gray-800 border ${errors.fullName ? 'border-red-500' : 'border-gray-600'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200`}
+              disabled={isLoading}
+            />
+            {errors.fullName && (
+              <p className="mt-1 text-sm text-red-400">{errors.fullName}</p>
+            )}
           </div>
-        )}
 
-        {/* Signup Form */}
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          {/* Form fields remain the same as before, just removed normalization */}
-          {/* ... rest of your form JSX ... */}
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Email Address *
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Enter your email"
+              className={`w-full px-4 py-3 bg-gray-800 border ${errors.email ? 'border-red-500' : 'border-gray-600'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200`}
+              disabled={isLoading}
+            />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-400">{errors.email}</p>
+            )}
+          </div>
+
+          {/* Phone Number */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Phone Number *
+            </label>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              placeholder="Enter your phone number"
+              className={`w-full px-4 py-3 bg-gray-800 border ${errors.phone ? 'border-red-500' : 'border-gray-600'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200`}
+              disabled={isLoading}
+            />
+            {errors.phone && (
+              <p className="mt-1 text-sm text-red-400">{errors.phone}</p>
+            )}
+          </div>
+
+          {/* User Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              I am a *
+            </label>
+            <select
+              name="userType"
+              value={formData.userType}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white transition duration-200"
+              disabled={isLoading}
+            >
+              <option value="customer">Customer</option>
+              <option value="mechanic">Mechanic</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Password *
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="Create a password (min. 6 characters)"
+                className={`w-full px-4 py-3 bg-gray-800 border ${errors.password ? 'border-red-500' : 'border-gray-600'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200 pr-12`}
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                disabled={isLoading}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-400">{errors.password}</p>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Confirm Password *
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                placeholder="Confirm your password"
+                className={`w-full px-4 py-3 bg-gray-800 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-600'} rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200 pr-12`}
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                disabled={isLoading}
+              >
+                {showConfirmPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>
+            )}
+          </div>
+
+          {/* Terms and Conditions */}
+          <div className="flex items-start space-x-2">
+            <input
+              type="checkbox"
+              id="terms"
+              className="mt-1 w-4 h-4 text-green-600 bg-gray-800 border-gray-600 rounded focus:ring-green-500"
+              required
+              disabled={isLoading}
+            />
+            <label htmlFor="terms" className="text-sm text-gray-300">
+              I agree to the{' '}
+              <Link href="/terms" className="text-green-400 hover:text-green-300">
+                Terms & Conditions
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" className="text-green-400 hover:text-green-300">
+                Privacy Policy
+              </Link>
+            </label>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-4"
+          >
+            {isLoading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Creating Account...</span>
+              </>
+            ) : (
+              <span>Create Account</span>
+            )}
+          </button>
         </form>
 
-        {/* Login Link */}
-        <div className="text-center mt-6 pt-6 border-t border-gray-600">
-          <p className="text-sm text-gray-400">
-            Already have an account?{' '}
-            <Link href="/Login" className="text-green-400 hover:text-green-300 font-semibold transition duration-200">
-              Login here
-            </Link>
-          </p>
+        {/* Already have account */}
+        <div className="mt-6 pt-6 border-t border-gray-700">
+          <div className="text-center">
+            <p className="text-sm text-gray-400">
+              Already have an account?{' '}
+              <Link 
+                href="/Login" 
+                className="text-green-400 hover:text-green-300 font-semibold transition duration-200"
+              >
+                Sign in here
+              </Link>
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              * Required fields
+            </p>
+          </div>
         </div>
       </div>
     </div>
