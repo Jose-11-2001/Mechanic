@@ -147,51 +147,23 @@ export default function Login() {
               Forgot password?
             </Link>
           </div>
-
-          {error && (
-            <div className="bg-red-900/50 border border-red-500 rounded-lg p-3">
-              <p className="text-red-400 text-sm">{error}</p>
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Redirecting to Services...</span>
-              </>
-            ) : (
-              <span>Login → Services</span>
-            )}
-          </button>
+  
+    <p className="text-sm text-gray-400">
+              
+              <Link 
+                href="/Services" 
+                className="text-green-400 hover:text-green-300 font-semibold transition duration-200"
+              >
+               <button>Login</button>
+              </Link>
+            </p>
+ 
 
           {/* Divider */}
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-600"></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-900 text-gray-400">OR</span>
-            </div>
-          </div>
-
-          {/* Direct Services Link */}
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={continueAsGuest}
-              disabled={isLoading}
-              className="w-full bg-transparent border border-gray-600 hover:border-gray-500 hover:bg-gray-800/50 text-gray-300 font-medium py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Continue as Guest → Services
-            </button>
-            <p className="text-xs text-gray-500 mt-2">
-              Browse services without creating an account
-            </p>
           </div>
         </form>
 
