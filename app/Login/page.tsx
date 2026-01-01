@@ -3,8 +3,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-const API_BASE_URL = 'http://localhost:3001';
-
 export default function Login() {
   const [formData, setFormData] = useState({
     email: '',
@@ -15,6 +13,13 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+
+  // Mock user database
+  const mockUsers = [
+    { email: 'admin@gmail.com', password: 'admin123', name: 'Admin User', role: 'admin' },
+    { email: 'user@example.com', password: 'password123', name: 'Demo User', role: 'user' },
+    { email: 'mechanic@gmail.com', password: 'mechanic123', name: 'John Mechanic', role: 'mechanic' }
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,63 +40,46 @@ export default function Login() {
     }
 
     try {
-      // Prepare login payload - no normalization
-      const loginPayload = {
-        email: formData.email, // No .toLowerCase().trim()
-        password: formData.password
-      };
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       console.log('🔐 Attempting login with:', {
-        ...loginPayload,
-        password: '*'.repeat(loginPayload.password.length)
+        email: formData.email,
+        password: '*'.repeat(formData.password.length)
       });
 
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(loginPayload),
-      });
+      // Mock authentication - find user
+      const user = mockUsers.find(
+        u => u.email.toLowerCase() === formData.email.toLowerCase() && 
+             u.password === formData.password
+      );
 
-      const responseText = await response.text();
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Raw response:', responseText);
-
-      let responseData;
-      try {
-        responseData = responseText ? JSON.parse(responseText) : {};
-      } catch (parseError) {
-        console.error('❌ JSON Parse error:', parseError);
-        throw new Error('Invalid response from server');
+      if (!user) {
+        throw new Error('Invalid email or password');
       }
 
-      if (!response.ok) {
-        console.error('❌ Server error details:', responseData);
-        
-        if (response.status === 401) {
-          throw new Error(responseData.message || 'Invalid email or password');
-        } else if (response.status === 400) {
-          throw new Error(responseData.message || 'Bad request - check your input');
-        } else {
-          throw new Error(responseData.message || `Login failed: ${response.status}`);
-        }
-      }
-
-      console.log('✅ Login successful!', responseData);
+      console.log('✅ Login successful!', { user: { ...user, password: '***' } });
       
-      // Store authentication data
-      if (responseData.access_token) {
-        const storage = rememberMe ? localStorage : sessionStorage;
-        storage.setItem('token', responseData.access_token);
-        
-        if (responseData.user) {
-          storage.setItem('user', JSON.stringify(responseData.user));
-        }
-        
-        storage.setItem('loginTime', new Date().toISOString());
-        console.log('🔑 Authentication data stored');
-      }
+      // Store mock authentication data
+      const mockToken = btoa(`${user.email}:${Date.now()}`);
+      const userData = {
+        id: Date.now(),
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=10b981&color=fff`
+      };
+
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem('token', mockToken);
+      storage.setItem('user', JSON.stringify(userData));
+      storage.setItem('loginTime', new Date().toISOString());
+      storage.setItem('isMockAuth', 'true'); // Flag to indicate mock auth
+      
+      console.log('🔑 Mock authentication data stored');
+
+      // Show success message
+      alert(`Welcome back, ${user.name}!`);
 
       // Redirect to dashboard
       router.push('/Dashboard');
@@ -101,8 +89,9 @@ export default function Login() {
       
       let userFriendlyError = error.message || 'Login failed. Please try again.';
       
-      if (error.message.includes('Network') || error.message.includes('fetch')) {
-        userFriendlyError = 'Cannot connect to server. Please check if the backend is running on port 3001.';
+      // Specific error messages
+      if (error.message.includes('Invalid email')) {
+        userFriendlyError = 'Invalid email or password. Try: admin@gmail.com / admin123';
       }
       
       setError(userFriendlyError);
@@ -120,11 +109,23 @@ export default function Login() {
     if (error) setError('');
   };
 
-  const fillDemoCredentials = () => {
-    setFormData({
-      email: 'admin@gmail.com',
-      password: 'admin123'
-    });
+  const fillDemoCredentials = (type: 'admin' | 'user' | 'mechanic' = 'admin') => {
+    let credentials;
+    switch(type) {
+      case 'admin':
+        credentials = { email: 'admin@gmail.com', password: 'admin123' };
+        break;
+      case 'user':
+        credentials = { email: 'user@example.com', password: 'password123' };
+        break;
+      case 'mechanic':
+        credentials = { email: 'mechanic@gmail.com', password: 'mechanic123' };
+        break;
+      default:
+        credentials = { email: 'admin@gmail.com', password: 'admin123' };
+    }
+    setFormData(credentials);
+    alert(`Demo credentials filled: ${credentials.email} / ${credentials.password}`);
   };
 
   return (
@@ -138,7 +139,32 @@ export default function Login() {
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white">BODE AUTOMOTIVES</h1>
           <p className="text-gray-300 mt-2">Login to your account</p>
-          <p className="text-xs text-yellow-400 mt-1">Backend: {API_BASE_URL}</p>
+          <p className="text-xs text-yellow-400 mt-1">Demo Mode: No backend required</p>
+        </div>
+
+        {/* Demo Credentials Buttons */}
+        <div className="mb-6 grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={() => fillDemoCredentials('admin')}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 px-2 rounded transition"
+          >
+            Admin
+          </button>
+          <button
+            type="button"
+            onClick={() => fillDemoCredentials('user')}
+            className="bg-purple-600 hover:bg-purple-700 text-white text-xs py-2 px-2 rounded transition"
+          >
+            User
+          </button>
+          <button
+            type="button"
+            onClick={() => fillDemoCredentials('mechanic')}
+            className="bg-orange-600 hover:bg-orange-700 text-white text-xs py-2 px-2 rounded transition"
+          >
+            Mechanic
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -152,7 +178,7 @@ export default function Login() {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="Enter your email exactly as registered"
+              placeholder="Use demo credentials above"
               className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200"
               required
               disabled={isLoading}
@@ -171,7 +197,7 @@ export default function Login() {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                placeholder="Enter your password"
+                placeholder="Use demo credentials above"
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200 pr-12"
                 required
                 disabled={isLoading}
