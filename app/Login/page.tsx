@@ -5,30 +5,79 @@ import Link from 'next/link';
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
+
+    console.log('🔄 Login process started...');
 
     // Simulate a short delay for "processing"
     setTimeout(() => {
-      console.log('✅ Login successful! Redirecting to services...');
-      
-      // Store a simple flag to indicate user is logged in
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('loginTime', new Date().toISOString());
-      
-      // Redirect to services page
-      router.push('/Services');
+      try {
+        console.log('✅ Login successful!');
+        console.log('📱 LocalStorage available:', typeof localStorage !== 'undefined');
+        
+        // Store a simple flag to indicate user is logged in
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('loginTime', new Date().toISOString());
+          console.log('💾 Login data stored in localStorage');
+        }
+        
+        console.log('🚀 Attempting to navigate to /Services');
+        
+        // Method 1: Try router.push first
+        router.push('/Services');
+        
+        // Method 2: Fallback to window.location if router doesn't work
+        setTimeout(() => {
+          console.log('⏳ Router push may have failed, trying fallback...');
+          window.location.href = '/Services';
+        }, 1000);
+        
+      } catch (err: any) {
+        console.error('❌ Navigation error:', err);
+        setError(`Failed to redirect: ${err.message}`);
+        setIsLoading(false);
+      }
     }, 500);
   };
 
   const continueAsGuest = () => {
     console.log('👤 Continuing as guest...');
-    localStorage.setItem('isGuest', 'true');
-    localStorage.setItem('loginTime', new Date().toISOString());
+    
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('isGuest', 'true');
+      localStorage.setItem('loginTime', new Date().toISOString());
+    }
+    
     router.push('/Services');
+    
+    // Fallback
+    setTimeout(() => {
+      window.location.href = '/Services';
+    }, 1000);
+  };
+
+  // Test function to check if Services page exists
+  const testServicesPage = async () => {
+    try {
+      const response = await fetch('/Services');
+      if (response.ok) {
+        console.log('✅ Services page exists at /Services');
+        alert('Services page exists! Status: ' + response.status);
+      } else {
+        console.log('❌ Services page not found. Status:', response.status);
+        alert('Services page returned status: ' + response.status);
+      }
+    } catch (err) {
+      console.error('❌ Cannot reach Services page:', err);
+      alert('Cannot reach Services page. Check if it exists.');
+    }
   };
 
   return (
@@ -42,10 +91,18 @@ export default function Login() {
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white">BODE AUTOMOTIVES</h1>
           <p className="text-gray-300 mt-2">Welcome Back</p>
+          
+          {/* Debug button - remove in production */}
+          <button
+            onClick={testServicesPage}
+            className="mt-2 text-xs bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded"
+          >
+            Test Services Page
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email Input - Just for show */}
+          {/* Email Input */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Email Address
@@ -58,7 +115,7 @@ export default function Login() {
             />
           </div>
 
-          {/* Password Input - Just for show */}
+          {/* Password Input */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Password
@@ -91,6 +148,12 @@ export default function Login() {
             </Link>
           </div>
 
+          {error && (
+            <div className="bg-red-900/50 border border-red-500 rounded-lg p-3">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={isLoading}
@@ -102,7 +165,7 @@ export default function Login() {
                 <span>Redirecting to Services...</span>
               </>
             ) : (
-              <span>Login</span>
+              <span>Login → Services</span>
             )}
           </button>
 
@@ -124,7 +187,7 @@ export default function Login() {
               disabled={isLoading}
               className="w-full bg-transparent border border-gray-600 hover:border-gray-500 hover:bg-gray-800/50 text-gray-300 font-medium py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Continue as Guest
+              Continue as Guest → Services
             </button>
             <p className="text-xs text-gray-500 mt-2">
               Browse services without creating an account
@@ -148,7 +211,7 @@ export default function Login() {
                 href="/Services" 
                 className="text-green-400 hover:text-green-300"
               >
-                Browse all services →
+                Go directly to Services page →
               </Link>
             </p>
           </div>
