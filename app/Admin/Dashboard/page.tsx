@@ -79,16 +79,16 @@ export default function Dashboard() {
           users: [
             { 
               id: 1, 
-              name: 'John Doe', 
-              email: 'john@example.com', 
+              name: 'John Banda', 
+              email: 'john@gmail.com', 
               phone: '+255123456789', 
               role: 'customer', 
               createdAt: '2024-01-15' 
             },
             { 
               id: 2, 
-              name: 'Jane Smith', 
-              email: 'jane@example.com', 
+              name: 'Jane Mbukwa', 
+              email: 'jane@gmail.com', 
               phone: '+255987654321', 
               role: 'customer', 
               createdAt: '2024-01-20' 
@@ -97,7 +97,7 @@ export default function Dashboard() {
               id: 3, 
               name: 'Admin User', 
               email: 'admin@bodeautomotive.com', 
-              phone: '+255555555555', 
+              phone: '+265 886663959', 
               role: 'admin', 
               createdAt: '2024-01-10' 
             }
