@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 const API_BASE_URL = 'http://localhost:3001';
 
-export default function ForgotPassword() {
+export default function ForgetPassword() {
   const [step, setStep] = useState<'identify' | 'verify' | 'success'>('identify');
   const [formData, setFormData] = useState({
     emailOrUsername: '',
