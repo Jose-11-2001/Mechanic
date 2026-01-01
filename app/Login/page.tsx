@@ -92,14 +92,7 @@ export default function Login() {
           <h1 className="text-2xl font-bold text-white">BODE AUTOMOTIVES</h1>
           <p className="text-gray-300 mt-2">Welcome Back</p>
           
-          {/* Debug button - remove in production */}
-          <button
-            onClick={testServicesPage}
-            className="mt-2 text-xs bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded"
-          >
-            Test Services Page
-          </button>
-        </div>
+            </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Input */}
@@ -178,14 +171,7 @@ export default function Login() {
                 Sign up here
               </Link>
             </p>
-            <p className="text-xs text-gray-500 mt-2">
-              <Link 
-                href="/Services" 
-                className="text-green-400 hover:text-green-300"
-              >
-                Go directly to Services page →
-              </Link>
-            </p>
+      
           </div>
         </div>
       </div>
