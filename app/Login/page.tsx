@@ -13,31 +13,20 @@ export default function Login() {
     setIsLoading(true);
     setError('');
 
-    console.log('🔄 Login process started...');
-
     // Simulate a short delay for "processing"
     setTimeout(() => {
       try {
-        console.log('✅ Login successful!');
-        console.log('📱 LocalStorage available:', typeof localStorage !== 'undefined');
-        
         // Store a simple flag to indicate user is logged in
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('isLoggedIn', 'true');
           localStorage.setItem('loginTime', new Date().toISOString());
-          console.log('💾 Login data stored in localStorage');
         }
         
-        console.log('🚀 Attempting to navigate to /Services');
+        // Prevent going back to login page
+        localStorage.setItem('fromLogin', 'true');
         
-        // Method 1: Try router.push first
+        // Navigate to Services page and replace history
         router.push('/Services');
-        
-        // Method 2: Fallback to window.location if router doesn't work
-        setTimeout(() => {
-          console.log('⏳ Router push may have failed, trying fallback...');
-          window.location.href = '/Services';
-        }, 1000);
         
       } catch (err: any) {
         console.error('❌ Navigation error:', err);
@@ -45,39 +34,6 @@ export default function Login() {
         setIsLoading(false);
       }
     }, 500);
-  };
-
-  const continueAsGuest = () => {
-    console.log('👤 Continuing as guest...');
-    
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('isGuest', 'true');
-      localStorage.setItem('loginTime', new Date().toISOString());
-    }
-    
-    router.push('/Services');
-    
-    // Fallback
-    setTimeout(() => {
-      window.location.href = '/Services';
-    }, 1000);
-  };
-
-  // Test function to check if Services page exists
-  const testServicesPage = async () => {
-    try {
-      const response = await fetch('/Services');
-      if (response.ok) {
-        console.log('✅ Services page exists at /Services');
-        alert('Services page exists! Status: ' + response.status);
-      } else {
-        console.log('❌ Services page not found. Status:', response.status);
-        alert('Services page returned status: ' + response.status);
-      }
-    } catch (err) {
-      console.error('❌ Cannot reach Services page:', err);
-      alert('Cannot reach Services page. Check if it exists.');
-    }
   };
 
   return (
@@ -91,8 +47,7 @@ export default function Login() {
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white">BODE AUTOMOTIVES</h1>
           <p className="text-gray-300 mt-2">Welcome Back</p>
-          
-            </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Input */}
@@ -140,24 +95,27 @@ export default function Login() {
               Forgot password?
             </Link>
           </div>
-  
-    <p className="text-sm text-gray-400">
-              
-              <Link 
-                href="/Services" 
-                className="text-green-400 hover:text-green-300 font-semibold transition duration-200"
-              >
-               <button>Login</button>
-              </Link>
-            </p>
- 
 
-          {/* Divider */}
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-600"></div>
+          {error && (
+            <div className="bg-red-900/50 border border-red-500 rounded-lg p-3">
+              <p className="text-red-400 text-sm">{error}</p>
             </div>
-          </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          >
+            {isLoading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Logging in...</span>
+              </>
+            ) : (
+              <span>Login</span>
+            )}
+          </button>
         </form>
 
         <div className="mt-6 pt-6 border-t border-gray-700">
@@ -171,7 +129,6 @@ export default function Login() {
                 Sign up here
               </Link>
             </p>
-      
           </div>
         </div>
       </div>
