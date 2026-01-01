@@ -35,7 +35,7 @@ export default function Login() {
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white">BODE AUTOMOTIVES</h1>
           <p className="text-gray-300 mt-2">Welcome Back</p>
-          <p className="text-xs text-yellow-400 mt-1">No credentials needed for now</p>
+
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -46,7 +46,7 @@ export default function Login() {
             </label>
             <input
               type="email"
-              placeholder="Enter any email (optional)"
+              placeholder="Enter email "
               className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200"
               disabled={isLoading}
             />
@@ -60,7 +60,7 @@ export default function Login() {
             <div className="relative">
               <input
                 type="password"
-                placeholder="Enter any password (optional)"
+                placeholder="Enter password "
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white placeholder-gray-400 transition duration-200"
                 disabled={isLoading}
               />
@@ -89,12 +89,6 @@ export default function Login() {
             </Link>
           </div>
 
-          <div className="bg-blue-900/30 border border-blue-500 rounded-lg p-3 text-center">
-            <p className="text-blue-300 text-sm">
-              💡 No authentication required for now. Just click Login.
-            </p>
-          </div>
-
           <button
             type="submit"
             disabled={isLoading}
@@ -121,9 +115,6 @@ export default function Login() {
               >
                 Sign up here
               </Link>
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              Note: Authentication will be implemented when backend is ready
             </p>
           </div>
         </div>
